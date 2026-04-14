@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, googleProvider } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -12,84 +14,68 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 초기화 및 OAuth 콜백 처리
+  // Firebase 인증 상태 감지
   useEffect(() => {
-    // URL에서 id_token 확인 (OAuth redirect 후)
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const idToken = params.get('id_token');
-
-    if (idToken) {
-      try {
-        // JWT 디코딩
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
-        console.log('📧 로그인 시도 이메일:', payload.email);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        console.log('🔍 Firebase 사용자 감지:', firebaseUser.email);
         
         // 화이트리스트 체크
-        if (ALLOWED_EMAILS.includes(payload.email)) {
+        if (ALLOWED_EMAILS.includes(firebaseUser.email)) {
           const userData = {
-            name: payload.name,
-            email: payload.email,
-            picture: payload.picture
+            name: firebaseUser.displayName,
+            email: firebaseUser.email,
+            picture: firebaseUser.photoURL,
           };
           
           setUser(userData);
-          localStorage.setItem('user', JSON.stringify(userData));
-          console.log('✅ 로그인 성공!');
-          
-          // URL 정리
-          window.history.replaceState({}, document.title, window.location.pathname);
+          console.log('✅ 로그인 성공:', firebaseUser.email);
         } else {
-          console.log('❌ 권한 없음!');
+          console.log('❌ 권한 없는 이메일:', firebaseUser.email);
           alert('접근 권한이 없는 계정입니다.');
-          window.history.replaceState({}, document.title, window.location.pathname);
+          await signOut(auth);
+          setUser(null);
         }
-      } catch (error) {
-        console.error('토큰 처리 실패:', error);
+      } else {
+        console.log('👤 로그아웃 상태');
+        setUser(null);
       }
-    } else {
-      // 저장된 사용자 정보 확인
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      }
-    }
-    
-    setLoading(false);
+      
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Google OAuth2 로그인
-  const login = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    console.log('🔑 Client ID:', clientId);
-
-    if (!clientId) {
-      alert('Google Client ID가 설정되지 않았습니다.');
-      return;
+  // Google 로그인
+  const login = async () => {
+    try {
+      console.log('🔑 Google 로그인 시작...');
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged가 자동으로 처리함
+    } catch (error) {
+      console.error('❌ 로그인 실패:', error);
+      
+      if (error.code === 'auth/popup-blocked') {
+        alert('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        // 사용자가 팝업을 닫음 - 조용히 무시
+      } else {
+        alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
+      
+      throw error;
     }
-
-    // OAuth2 파라미터
-    const redirectUri = window.location.origin;
-    const nonce = Math.random().toString(36).substring(7);
-    
-    // OAuth2 URL 생성
-    const authUrl = 
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${encodeURIComponent(clientId)}&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `response_type=id_token&` +
-      `scope=openid%20email%20profile&` +
-      `nonce=${nonce}&` +
-      `prompt=select_account`;
-    
-    console.log('🔗 OAuth URL로 이동...');
-    window.location.href = authUrl;
   };
 
   // 로그아웃
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      console.log('👋 로그아웃 완료');
+    } catch (error) {
+      console.error('❌ 로그아웃 실패:', error);
+    }
   };
 
   const value = {
