@@ -12,86 +12,84 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 초기화
+  // 초기화 및 OAuth 콜백 처리
   useEffect(() => {
-    // 저장된 사용자 정보 확인
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    // URL에서 id_token 확인 (OAuth redirect 후)
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const idToken = params.get('id_token');
+
+    if (idToken) {
+      try {
+        // JWT 디코딩
+        const payload = JSON.parse(atob(idToken.split('.')[1]));
+        console.log('📧 로그인 시도 이메일:', payload.email);
+        
+        // 화이트리스트 체크
+        if (ALLOWED_EMAILS.includes(payload.email)) {
+          const userData = {
+            name: payload.name,
+            email: payload.email,
+            picture: payload.picture
+          };
+          
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+          console.log('✅ 로그인 성공!');
+          
+          // URL 정리
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          console.log('❌ 권한 없음!');
+          alert('접근 권한이 없는 계정입니다.');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (error) {
+        console.error('토큰 처리 실패:', error);
+      }
+    } else {
+      // 저장된 사용자 정보 확인
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
     }
     
-    // 로딩 완료
     setLoading(false);
   }, []);
 
-  // Google 로그인
-  const login = async () => {
-    try {
-      // Google API 로드 확인
-      if (!window.google) {
-        alert('Google API가 로드되지 않았습니다. 페이지를 새로고침해주세요.');
-        return;
-      }
+  // Google OAuth2 로그인
+  const login = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    console.log('🔑 Client ID:', clientId);
 
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      console.log('🔑 Client ID:', clientId);
-
-      if (!clientId) {
-        alert('Google Client ID가 설정되지 않았습니다.');
-        return;
-      }
-
-      return new Promise((resolve, reject) => {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (response) => {
-            try {
-              // JWT 토큰 디코딩
-              const payload = JSON.parse(atob(response.credential.split('.')[1]));
-              
-              console.log('📧 로그인 시도 이메일:', payload.email);
-              console.log('✅ 허용된 이메일:', ALLOWED_EMAILS);
-              
-              // 이메일 화이트리스트 체크
-              if (!ALLOWED_EMAILS.includes(payload.email)) {
-                console.log('❌ 권한 없음!');
-                alert('접근 권한이 없는 계정입니다.');
-                reject(new Error('접근 권한 없음'));
-                return;
-              }
-
-              const userData = {
-                name: payload.name,
-                email: payload.email,
-                picture: payload.picture
-              };
-
-              // 사용자 정보 저장
-              setUser(userData);
-              localStorage.setItem('user', JSON.stringify(userData));
-
-              console.log('✅ 로그인 성공!');
-              resolve(userData);
-            } catch (error) {
-              console.error('로그인 처리 실패:', error);
-              reject(error);
-            }
-          }
-        });
-
-        window.google.accounts.id.prompt();
-      });
-    } catch (error) {
-      console.error('로그인 실패:', error);
-      throw error;
+    if (!clientId) {
+      alert('Google Client ID가 설정되지 않았습니다.');
+      return;
     }
+
+    // OAuth2 파라미터
+    const redirectUri = window.location.origin + window.location.pathname;
+    const scope = 'email profile openid';
+    const nonce = Math.random().toString(36).substring(7);
+    
+    // OAuth2 URL 생성
+    const authUrl = 
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=id_token&` +
+      `scope=${encodeURIComponent(scope)}&` +
+      `nonce=${nonce}`;
+    
+    console.log('🔗 OAuth URL로 이동...');
+    window.location.href = authUrl;
   };
 
   // 로그아웃
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    window.google?.accounts?.id?.disableAutoSelect();
   };
 
   const value = {
