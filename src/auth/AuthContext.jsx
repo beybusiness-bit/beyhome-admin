@@ -1,5 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { 
+  signInWithRedirect, 
+  getRedirectResult,
+  signOut, 
+  onAuthStateChanged 
+} from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 
 const AuthContext = createContext();
@@ -14,8 +19,23 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Firebase 인증 상태 감지
+  // 초기화 및 redirect 결과 처리
   useEffect(() => {
+    // Redirect 결과 확인
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log('🔄 Redirect 로그인 결과:', result.user.email);
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Redirect 에러:', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          alert('로그인 중 오류가 발생했습니다.');
+        }
+      });
+
+    // Firebase 인증 상태 감지
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         console.log('🔍 Firebase 사용자 감지:', firebaseUser.email);
@@ -47,23 +67,15 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Google 로그인
+  // Google 로그인 (Redirect 방식)
   const login = async () => {
     try {
-      console.log('🔑 Google 로그인 시작...');
-      await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged가 자동으로 처리함
+      console.log('🔑 Google 로그인 시작 (Redirect)...');
+      await signInWithRedirect(auth, googleProvider);
+      // 페이지가 리다이렉트됨 - 돌아오면 getRedirectResult가 처리
     } catch (error) {
       console.error('❌ 로그인 실패:', error);
-      
-      if (error.code === 'auth/popup-blocked') {
-        alert('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요.');
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        // 사용자가 팝업을 닫음 - 조용히 무시
-      } else {
-        alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
-      }
-      
+      alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
       throw error;
     }
   };
