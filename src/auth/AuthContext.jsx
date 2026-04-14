@@ -69,8 +69,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     // OAuth2 파라미터
-    const redirectUri = window.location.origin + window.location.pathname;
-    const scope = 'email profile openid';
+    const redirectUri = window.location.origin;
     const nonce = Math.random().toString(36).substring(7);
     
     // OAuth2 URL 생성
@@ -79,8 +78,9 @@ export const AuthProvider = ({ children }) => {
       `client_id=${encodeURIComponent(clientId)}&` +
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `response_type=id_token&` +
-      `scope=${encodeURIComponent(scope)}&` +
-      `nonce=${nonce}`;
+      `scope=openid%20email%20profile&` +
+      `nonce=${nonce}&` +
+      `prompt=select_account`;
     
     console.log('🔗 OAuth URL로 이동...');
     window.location.href = authUrl;
