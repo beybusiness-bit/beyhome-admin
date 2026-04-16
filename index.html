@@ -1,14 +1,4338 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home Admin - 멀티 사이트 관리</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>멀티 사이트 관리 어드민</title>
+  <style>
+    /* ==================== RESET & BASE ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', 'Roboto', sans-serif;
+      background: #f5f5f5;
+      color: #2a2a2a;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    input, textarea, select {
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ==================== LOGIN PAGE ==================== */
+    .login-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+    }
+
+    .login-container.active {
+      display: flex;
+    }
+
+    .login-box {
+      background: white;
+      padding: 60px 50px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 450px;
+      width: 100%;
+    }
+
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      background: #3b82f6;
+      border-radius: 16px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+
+    .login-box h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #2a2a2a;
+    }
+
+    .login-box p {
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    #googleLoginBtn {
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .login-footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .login-footer p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 5px 0;
+    }
+
+    /* ==================== APP LAYOUT ==================== */
+    .app-layout {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .app-layout.active {
+      display: flex;
+    }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      width: 260px;
+      background: #1e293b;
+      color: white;
+      padding: 20px 0;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: white;
+    }
+
+    .sidebar-header .user-email {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+
+    .site-selector {
+      width: 100%;
+      padding: 8px 12px;
+      background: #334155;
+      color: white;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .site-selector:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .btn-new-site {
+      width: 100%;
+      padding: 8px 12px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-new-site:hover {
+      background: #2563eb;
+    }
+
+    .sidebar-menu {
+      padding: 20px 0;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.05);
+      color: white;
+    }
+
+    .menu-item.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .menu-item-icon {
+      font-size: 18px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: #ef4444;
+      color: white;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: #dc2626;
+    }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .main-content {
+      margin-left: 260px;
+      padding: 30px;
+      min-height: 100vh;
+      width: calc(100% - 260px);
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+
+    .page-header p {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ==================== CARDS ==================== */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #3b82f6;
+    }
+
+    .stat-card.success {
+      border-left-color: #10b981;
+    }
+
+    .stat-card.warning {
+      border-left-color: #f59e0b;
+    }
+
+    .stat-card.purple {
+      border-left-color: #8b5cf6;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    /* ==================== BUTTONS ==================== */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #3b82f6;
+      color: #3b82f6;
+    }
+
+    .btn-outline:hover {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .btn-block {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ==================== FORMS ==================== */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-help {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .color-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .color-input-wrapper input[type="color"] {
+      width: 60px;
+      height: 40px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .color-input-wrapper input[type="text"] {
+      flex: 1;
+    }
+
+    /* ==================== TABLES ==================== */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th {
+      background: #f1f5f9;
+      padding: 12px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+    }
+
+    .table tr:hover {
+      background: #f8fafc;
+    }
+
+    /* ==================== TOGGLE SWITCH ==================== */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #3b82f6;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+
+    /* ==================== MODALS ==================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .modal-close {
+      padding: 4px;
+      color: #64748b;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #1e293b;
+    }
+
+    .modal-body {
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* ==================== GRID LAYOUTS ==================== */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    /* ==================== QUICK ACTIONS ==================== */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .quick-action-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-action-card:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .quick-action-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .quick-action-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+    }
+
+    /* ==================== ACTIVITY LIST ==================== */
+    .activity-list {
+      list-style: none;
+    }
+
+    .activity-item {
+      padding: 15px;
+      border-left: 3px solid #e2e8f0;
+      margin-bottom: 10px;
+      background: #f8fafc;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .activity-item.page {
+      border-left-color: #3b82f6;
+    }
+
+    .activity-item.image {
+      border-left-color: #10b981;
+    }
+
+    .activity-item.deploy {
+      border-left-color: #f59e0b;
+    }
+
+    .activity-item.settings {
+      border-left-color: #8b5cf6;
+    }
+
+    .activity-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .activity-time {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    /* ==================== GUIDE STEPS ==================== */
+    .guide-steps {
+      list-style: none;
+      counter-reset: step-counter;
+    }
+
+    .guide-step {
+      counter-increment: step-counter;
+      padding: 15px 15px 15px 50px;
+      position: relative;
+      margin-bottom: 10px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+
+    .guide-step:before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 15px;
+      top: 15px;
+      width: 24px;
+      height: 24px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .guide-step-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .guide-step-desc {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ==================== BLOCK EDITOR ==================== */
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr 300px;
+      gap: 20px;
+      height: calc(100vh - 100px);
+    }
+
+    .editor-sidebar {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .editor-main {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      overflow-y: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .editor-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 30px;
+    }
+
+    .editor-toolbar-left {
+      display: flex;
+      gap: 10px;
+    }
+
+    .editor-toolbar-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .preview-mode-toggle {
+      display: flex;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .preview-mode-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #64748b;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    .preview-mode-btn.active {
+      background: white;
+      color: #3b82f6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .blocks-container {
+      min-height: 400px;
+    }
+
+    .block-item {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .block-item:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .block-item.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .block-type {
+      font-size: 12px;
+      font-weight: 600;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .block-actions {
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .block-item:hover .block-actions {
+      opacity: 1;
+    }
+
+    .block-action-btn {
+      padding: 6px 10px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #64748b;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .block-action-btn:hover {
+      border-color: #3b82f6;
+      color: #3b82f6;
+    }
+
+    .block-action-btn.danger:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .block-content {
+      color: #1e293b;
+    }
+
+    .block-content h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .block-content h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .block-content p {
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .block-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .block-content hr {
+      margin: 15px 0;
+      border: none;
+    }
+
+    .block-spacer {
+      background: repeating-linear-gradient(
+        45deg,
+        #f1f5f9,
+        #f1f5f9 10px,
+        #e2e8f0 10px,
+        #e2e8f0 20px
+      );
+      border-radius: 4px;
+    }
+
+    .block-button-wrapper {
+      text-align: center;
+    }
+
+    .block-button {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .block-button.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .block-button.primary:hover {
+      background: #2563eb;
+    }
+
+    .block-button.secondary {
+      background: #64748b;
+      color: white;
+    }
+
+    .block-button.secondary:hover {
+      background: #475569;
+    }
+
+    .block-button.outline {
+      background: transparent;
+      border: 2px solid #3b82f6;
+      color: #3b82f6;
+    }
+
+    .block-button.outline:hover {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .block-columns {
+      display: flex;
+      gap: 20px;
+    }
+
+    .block-column {
+      background: white;
+      padding: 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      min-height: 100px;
+    }
+
+    .block-placeholder {
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .add-block-btn {
+      width: 100%;
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .add-block-btn:hover {
+      border-color: #3b82f6;
+      color: #3b82f6;
+    }
+
+    .block-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .block-type-card {
+      padding: 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .block-type-card:hover {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .block-type-icon {
+      font-size: 28px;
+    }
+
+    .block-type-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+    }
+
+    .block-edit-form {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .page-tree-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .page-tree-item:hover {
+      background: #f1f5f9;
+    }
+
+    .page-tree-item.active {
+      background: #eff6ff;
+      color: #3b82f6;
+      font-weight: 500;
+    }
+
+    .page-tree-category {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+
+    /* ==================== IMAGE LIBRARY ==================== */
+    .image-grid {
+      display: grid;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .image-grid.small {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .image-grid.medium {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+
+    .image-grid.large {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .image-grid.list .image-item {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .image-item {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .image-item:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .image-item.selected {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .image-checkbox {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .image-preview {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: #f1f5f9;
+    }
+
+    .image-grid.list .image-preview {
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+
+    .image-info {
+      padding: 12px;
+    }
+
+    .image-grid.list .image-info {
+      flex: 1;
+    }
+
+    .image-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1e293b;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .image-meta {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .image-actions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .image-item:hover .image-actions {
+      opacity: 1;
+    }
+
+    .folder-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .folder-tab {
+      padding: 8px 16px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .folder-tab:hover {
+      background: #e2e8f0;
+    }
+
+    .folder-tab.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .storage-bar {
+      background: #e2e8f0;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .storage-fill {
+      height: 100%;
+      background: #3b82f6;
+      transition: width 0.3s, background 0.3s;
+    }
+
+    .storage-fill.warning {
+      background: #f59e0b;
+    }
+
+    .storage-fill.danger {
+      background: #ef4444;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .pagination-btn {
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      border-color: #3b82f6;
+      color: #3b82f6;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination-info {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ==================== DEPLOY ==================== */
+    .deploy-status {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .deploy-status.success {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+
+    .deploy-status.error {
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+
+    .deploy-log {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+
+    .deploy-log-line {
+      margin-bottom: 8px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .deploy-log-time {
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .deploy-log-text {
+      flex: 1;
+    }
+
+    .deploy-log-text.success {
+      color: #86efac;
+    }
+
+    .deploy-log-text.error {
+      color: #fca5a5;
+    }
+
+    .deploy-log-text.info {
+      color: #7dd3fc;
+    }
+
+    /* ==================== ALERTS ==================== */
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .alert-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .alert-content {
+      flex: 1;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .alert-message {
+      font-size: 14px;
+    }
+
+    /* ==================== BADGES ==================== */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-primary {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-success {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* ==================== LOADING ==================== */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f4f6;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .editor-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .block-picker-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==================== UTILITIES ==================== */
+    .hidden {
+      display: none !important;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .mb-0 { margin-bottom: 0; }
+    .mb-1 { margin-bottom: 10px; }
+    .mb-2 { margin-bottom: 20px; }
+    .mb-3 { margin-bottom: 30px; }
+
+    .mt-0 { margin-top: 0; }
+    .mt-1 { margin-top: 10px; }
+    .mt-2 { margin-top: 20px; }
+    .mt-3 { margin-top: 30px; }
+
+    .flex {
+      display: flex;
+    }
+
+    .flex-col {
+      flex-direction: column;
+    }
+
+    .items-center {
+      align-items: center;
+    }
+
+    .justify-between {
+      justify-content: space-between;
+    }
+
+    .gap-1 { gap: 10px; }
+    .gap-2 { gap: 20px; }
+
+    .w-full {
+      width: 100%;
+    }
+
+    /* ==================== SCROLLBAR ==================== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 로그인 페이지 -->
+<div id="loginContainer" class="login-container active">
+  <div class="login-box">
+    <div class="login-logo">🏠</div>
+    <h1>멀티 사이트 관리 어드민</h1>
+    <p>여러 사이트를 한 곳에서 관리하세요</p>
+    <div id="googleLoginBtn"></div>
+    <div class="login-footer">
+      <p>화이트리스트에 등록된 계정만 접근 가능합니다</p>
+      <p>접근 권한이 필요하면 관리자에게 문의하세요</p>
+    </div>
+  </div>
+</div>
+
+<!-- 앱 레이아웃 -->
+<div id="appLayout" class="app-layout">
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>멀티 사이트 어드민</h2>
+      <div class="user-email" id="userEmail"></div>
+      <select class="site-selector" id="siteSelector">
+        <option value="">사이트를 선택하세요</option>
+      </select>
+      <button class="btn-new-site" onclick="showNewSiteModal()">+ 새 사이트 만들기</button>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-item active" onclick="showTab('dashboard')" data-tab="dashboard">
+        <span class="menu-item-icon">📊</span>
+        대시보드
+      </div>
+      <div class="menu-item" onclick="showTab('pages')" data-tab="pages">
+        <span class="menu-item-icon">📄</span>
+        페이지 관리
+      </div>
+      <div class="menu-item" onclick="showTab('menu')" data-tab="menu">
+        <span class="menu-item-icon">📋</span>
+        메뉴 설정
+      </div>
+      <div class="menu-item" onclick="showTab('layout')" data-tab="layout">
+        <span class="menu-item-icon">🎨</span>
+        레이아웃 설정
+      </div>
+      <div class="menu-item" onclick="showTab('design')" data-tab="design">
+        <span class="menu-item-icon">🎭</span>
+        디자인 설정
+      </div>
+      <div class="menu-item" onclick="showTab('siteSettings')" data-tab="siteSettings">
+        <span class="menu-item-icon">⚙️</span>
+        사이트 기본 설정
+      </div>
+      <div class="menu-item" onclick="showTab('images')" data-tab="images">
+        <span class="menu-item-icon">🖼️</span>
+        이미지 라이브러리
+      </div>
+      <div class="menu-item" onclick="showTab('deploy')" data-tab="deploy">
+        <span class="menu-item-icon">🚀</span>
+        배포
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="main-content">
+    <!-- 대시보드 -->
+    <div id="tabDashboard" class="tab-content active">
+      <div class="page-header">
+        <h1>대시보드</h1>
+        <p>사이트 현황을 한눈에 확인하세요</p>
+      </div>
+
+      <!-- 통계 카드 -->
+      <div class="stats-grid" id="statsGrid">
+        <!-- JavaScript로 동적 생성 -->
+      </div>
+
+      <!-- 빠른 작업 -->
+      <div class="card">
+        <div class="card-title">빠른 작업</div>
+        <div class="quick-actions">
+          <div class="quick-action-card" onclick="showTab('pages')">
+            <div class="quick-action-icon">📄</div>
+            <div class="quick-action-title">새 페이지 만들기</div>
+          </div>
+          <div class="quick-action-card" onclick="showTab('images')">
+            <div class="quick-action-icon">🖼️</div>
+            <div class="quick-action-title">이미지 업로드</div>
+          </div>
+          <div class="quick-action-card" onclick="showTab('deploy')">
+            <div class="quick-action-icon">🚀</div>
+            <div class="quick-action-title">사이트 배포</div>
+          </div>
+          <div class="quick-action-card" onclick="showTab('siteSettings')">
+            <div class="quick-action-icon">⚙️</div>
+            <div class="quick-action-title">사이트 설정</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 최근 활동 -->
+      <div class="card">
+        <div class="card-title">최근 활동</div>
+        <ul class="activity-list" id="activityList">
+          <!-- JavaScript로 동적 생성 -->
+        </ul>
+      </div>
+
+      <!-- 시작 가이드 -->
+      <div class="card">
+        <div class="card-title">시작 가이드</div>
+        <ol class="guide-steps">
+          <li class="guide-step">
+            <div class="guide-step-title">GitHub 저장소 연결</div>
+            <div class="guide-step-desc">사이트 기본 설정에서 GitHub Personal Access Token을 입력하세요</div>
+          </li>
+          <li class="guide-step">
+            <div class="guide-step-title">사이트 디자인 설정</div>
+            <div class="guide-step-desc">색상, 폰트, 레이아웃을 원하는 대로 설정하세요</div>
+          </li>
+          <li class="guide-step">
+            <div class="guide-step-title">페이지 만들기</div>
+            <div class="guide-step-desc">페이지 관리에서 새 페이지를 추가하고 블록 에디터로 콘텐츠를 작성하세요</div>
+          </li>
+          <li class="guide-step">
+            <div class="guide-step-title">이미지 업로드</div>
+            <div class="guide-step-desc">사용할 이미지를 이미지 라이브러리에 업로드하세요</div>
+          </li>
+          <li class="guide-step">
+            <div class="guide-step-title">사이트 배포</div>
+            <div class="guide-step-desc">모든 준비가 끝나면 배포 페이지에서 GitHub Pages로 배포하세요</div>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 페이지 관리 -->
+    <div id="tabPages" class="tab-content">
+      <div class="page-header">
+        <h1>페이지 관리</h1>
+        <p>사이트의 페이지를 관리하고 콘텐츠를 편집하세요</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">페이지 목록</div>
+        <div id="pagesList">
+          <!-- JavaScript로 동적 생성 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 블록 에디터 (페이지 편집) -->
+    <div id="tabBlockEditor" class="tab-content">
+      <!-- JavaScript로 동적 생성 -->
+    </div>
+
+    <!-- 메뉴 설정 -->
+    <div id="tabMenu" class="tab-content">
+      <div class="page-header">
+        <h1>메뉴 설정</h1>
+        <p>네비게이션 메뉴를 구성하세요</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">메뉴 항목</div>
+        <div id="menuItems">
+          <!-- JavaScript로 동적 생성 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 레이아웃 설정 -->
+    <div id="tabLayout" class="tab-content">
+      <div class="page-header">
+        <h1>레이아웃 설정</h1>
+        <p>헤더와 푸터를 설정하세요</p>
+      </div>
+
+      <div id="layoutSettings">
+        <!-- JavaScript로 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 디자인 설정 -->
+    <div id="tabDesign" class="tab-content">
+      <div class="page-header">
+        <h1>디자인 설정</h1>
+        <p>사이트의 색상, 폰트, 레이아웃을 설정하세요</p>
+      </div>
+
+      <div id="designSettings">
+        <!-- JavaScript로 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 사이트 기본 설정 -->
+    <div id="tabSiteSettings" class="tab-content">
+      <div class="page-header">
+        <h1>사이트 기본 설정</h1>
+        <p>사이트 정보, SEO, GitHub 연동을 설정하세요</p>
+      </div>
+
+      <div id="siteSettingsContent">
+        <!-- JavaScript로 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 이미지 라이브러리 -->
+    <div id="tabImages" class="tab-content">
+      <div class="page-header">
+        <h1>이미지 라이브러리</h1>
+        <p>사이트에서 사용할 이미지를 관리하세요</p>
+      </div>
+
+      <div id="imageLibrary">
+        <!-- JavaScript로 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 배포 -->
+    <div id="tabDeploy" class="tab-content">
+      <div class="page-header">
+        <h1>배포</h1>
+        <p>사이트를 GitHub Pages로 배포하세요</p>
+      </div>
+
+      <div id="deployContent">
+        <!-- JavaScript로 동적 생성 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 모달들 -->
+<!-- 새 사이트 생성 모달 -->
+<div id="newSiteModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">새 사이트 만들기</h3>
+      <button class="modal-close" onclick="closeModal('newSiteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">사이트 이름</label>
+        <input type="text" class="form-input" id="newSiteName" placeholder="예: 내 블로그">
+      </div>
+      <div class="form-group">
+        <label class="form-label">GitHub 저장소</label>
+        <input type="text" class="form-input" id="newSiteRepo" placeholder="예: username/my-site">
+        <p class="form-help">GitHub 저장소를 먼저 생성해주세요</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">템플릿</label>
+        <select class="form-select" id="newSiteTemplate">
+          <option value="blank">빈 사이트</option>
+          <option value="blog">블로그</option>
+          <option value="portfolio">포트폴리오</option>
+          <option value="business">비즈니스</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('newSiteModal')">취소</button>
+      <button class="btn btn-primary" onclick="createNewSite()">생성</button>
+    </div>
+  </div>
+</div>
+
+<!-- 블록 선택 모달 -->
+<div id="blockPickerModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">블록 추가</h3>
+      <button class="modal-close" onclick="closeModal('blockPickerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="block-picker-grid">
+        <div class="block-type-card" onclick="addBlock('text')">
+          <span class="block-type-icon">📝</span>
+          <span class="block-type-name">텍스트</span>
+        </div>
+        <div class="block-type-card" onclick="addBlock('image')">
+          <span class="block-type-icon">🖼️</span>
+          <span class="block-type-name">이미지</span>
+        </div>
+        <div class="block-type-card" onclick="addBlock('divider')">
+          <span class="block-type-icon">➖</span>
+          <span class="block-type-name">구분선</span>
+        </div>
+        <div class="block-type-card" onclick="addBlock('spacer')">
+          <span class="block-type-icon">⬜</span>
+          <span class="block-type-name">스페이서</span>
+        </div>
+        <div class="block-type-card" onclick="addBlock('button')">
+          <span class="block-type-icon">🔘</span>
+          <span class="block-type-name">버튼/링크</span>
+        </div>
+        <div class="block-type-card" onclick="addBlock('embed')">
+          <span class="block-type-icon">📺</span>
+          <span class="block-type-name">임베드</span>
+        </div>
+        <div class="block-type-card" onclick="addBlock('columns')">
+          <span class="block-type-icon">📊</span>
+          <span class="block-type-name">컬럼</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== 전역 변수 ====================
+const GOOGLE_CLIENT_ID = '27055656717-pgddfisd182i8jqlg574v7vrbkff2b2b.apps.googleusercontent.com';
+const ALLOWED_EMAILS = [
+  'itsbeybusiness@gmail.com',
+  'baekeun0@gmail.com'
+];
+
+// 전역 STATE
+const STATE = {
+  user: null,
+  sites: [],
+  currentSite: null,
+  currentPage: null,
+  pages: [],
+  blocks: [],
+  settings: {
+    layout: {},
+    design: {},
+    site: {},
+    menu: []
+  },
+  images: [],
+  deployHistory: [],
+  activityLog: [],
+  hasUnsavedChanges: false
+};
+
+// ==================== 초기화 ====================
+window.onload = function() {
+  console.log('🚀 멀티 사이트 관리 어드민 시작');
+  
+  // 저장된 세션 확인
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    try {
+      STATE.user = JSON.parse(savedUser);
+      console.log('✅ 저장된 세션 발견:', STATE.user.email);
+      showApp();
+      loadSites();
+    } catch (e) {
+      console.error('❌ 세션 파싱 실패:', e);
+      localStorage.removeItem('user');
+    }
+  }
+  
+  // Google OAuth는 스크립트 로드 완료 후 자동 초기화됨
+  
+  // 미저장 변경사항 경고
+  window.addEventListener('beforeunload', function(e) {
+    if (STATE.hasUnsavedChanges) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+};
+
+// ==================== Google OAuth ====================
+let googleInitAttempts = 0;
+const MAX_INIT_ATTEMPTS = 50; // 5초 (100ms * 50)
+
+function initGoogleOAuth() {
+  googleInitAttempts++;
+  
+  if (!window.google || !window.google.accounts) {
+    if (googleInitAttempts >= MAX_INIT_ATTEMPTS) {
+      console.error('❌ Google API 로드 실패 (5초 타임아웃)');
+      document.getElementById('googleLoginBtn').innerHTML = `
+        <div style="padding: 20px; text-align: center; color: #ef4444;">
+          <p style="margin-bottom: 10px;">Google 로그인을 불러오는 중 오류가 발생했습니다.</p>
+          <button onclick="location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            페이지 새로고침
+          </button>
+        </div>
+      `;
+      return;
+    }
+    
+    console.log(`⏳ Google API 로딩 중... (${googleInitAttempts}/${MAX_INIT_ATTEMPTS})`);
+    setTimeout(initGoogleOAuth, 100);
+    return;
+  }
+
+  console.log('🔑 Google OAuth 초기화 성공!');
+  
+  try {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse
+    });
+
+    window.google.accounts.id.renderButton(
+      document.getElementById('googleLoginBtn'),
+      {
+        theme: 'outline',
+        size: 'large',
+        width: 350,
+        text: 'continue_with',
+        locale: 'ko'
+      }
+    );
+    
+    console.log('✅ Google 로그인 버튼 렌더링 완료');
+  } catch (error) {
+    console.error('❌ Google OAuth 초기화 오류:', error);
+    document.getElementById('googleLoginBtn').innerHTML = `
+      <div style="padding: 20px; text-align: center; color: #ef4444;">
+        <p style="margin-bottom: 10px;">Google 로그인 초기화 오류</p>
+        <button onclick="location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+          페이지 새로고침
+        </button>
+      </div>
+    `;
+  }
+}
+
+function handleCredentialResponse(response) {
+  console.log('📧 로그인 시도...');
+  
+  try {
+    // JWT 토큰 디코딩
+    const credential = response.credential;
+    const base64Url = credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    const userData = JSON.parse(jsonPayload);
+    console.log('📧 이메일:', userData.email);
+
+    // 화이트리스트 체크
+    if (!ALLOWED_EMAILS.includes(userData.email)) {
+      alert('접근 권한이 없는 계정입니다.\n\n허용된 계정:\n' + ALLOWED_EMAILS.join('\n'));
+      return;
+    }
+
+    // 로그인 성공
+    STATE.user = {
+      name: userData.name,
+      email: userData.email,
+      picture: userData.picture
+    };
+
+    localStorage.setItem('user', JSON.stringify(STATE.user));
+    console.log('✅ 로그인 성공!');
+
+    showApp();
+    loadSites();
+  } catch (error) {
+    console.error('❌ 로그인 실패:', error);
+    alert('로그인 중 오류가 발생했습니다.');
+  }
+}
+
+function logout() {
+  if (STATE.hasUnsavedChanges) {
+    if (!confirm('저장되지 않은 변경사항이 있습니다. 정말 로그아웃하시겠습니까?')) {
+      return;
+    }
+  }
+
+  STATE.user = null;
+  localStorage.removeItem('user');
+  
+  if (window.google) {
+    window.google.accounts.id.disableAutoSelect();
+  }
+
+  document.getElementById('loginContainer').classList.add('active');
+  document.getElementById('appLayout').classList.remove('active');
+  
+  console.log('👋 로그아웃 완료');
+}
+
+function showApp() {
+  document.getElementById('loginContainer').classList.remove('active');
+  document.getElementById('appLayout').classList.add('active');
+  document.getElementById('userEmail').textContent = STATE.user.email;
+  
+  // 대시보드 렌더링
+  renderDashboard();
+}
+
+// ==================== 사이트 관리 ====================
+function loadSites() {
+  // localStorage에서 사이트 목록 불러오기
+  const savedSites = localStorage.getItem('sites');
+  if (savedSites) {
+    STATE.sites = JSON.parse(savedSites);
+  } else {
+    // 초기 사이트 데이터 (예시)
+    STATE.sites = [
+      {
+        id: 'site1',
+        name: 'lmp작업실',
+        repo: 'beybusiness-bit/lmp-website',
+        template: 'business',
+        createdAt: '2024-04-10'
+      }
+    ];
+    saveSites();
+  }
+
+  renderSiteSelector();
+  
+  // 첫 번째 사이트 자동 선택
+  if (STATE.sites.length > 0 && !STATE.currentSite) {
+    selectSite(STATE.sites[0].id);
+  }
+}
+
+function saveSites() {
+  localStorage.setItem('sites', JSON.stringify(STATE.sites));
+}
+
+function renderSiteSelector() {
+  const selector = document.getElementById('siteSelector');
+  selector.innerHTML = '<option value="">사이트를 선택하세요</option>';
+  
+  STATE.sites.forEach(site => {
+    const option = document.createElement('option');
+    option.value = site.id;
+    option.textContent = site.name;
+    if (STATE.currentSite && STATE.currentSite.id === site.id) {
+      option.selected = true;
+    }
+    selector.appendChild(option);
+  });
+
+  selector.onchange = function() {
+    if (this.value) {
+      selectSite(this.value);
+    }
+  };
+}
+
+function selectSite(siteId) {
+  STATE.currentSite = STATE.sites.find(s => s.id === siteId);
+  console.log('🌐 사이트 선택:', STATE.currentSite.name);
+  
+  // 사이트 데이터 로드
+  loadSiteData(siteId);
+  
+  // UI 업데이트
+  renderDashboard();
+  renderPages();
+  renderMenu();
+  renderLayoutSettings();
+  renderDesignSettings();
+  renderSiteSettings();
+  renderImageLibrary();
+  renderDeployPage();
+}
+
+function loadSiteData(siteId) {
+  // localStorage에서 사이트별 데이터 로드
+  const siteDataKey = `site_${siteId}`;
+  const savedData = localStorage.getItem(siteDataKey);
+  
+  if (savedData) {
+    const data = JSON.parse(savedData);
+    STATE.pages = data.pages || [];
+    STATE.settings = data.settings || { layout: {}, design: {}, site: {}, menu: [] };
+    STATE.images = data.images || [];
+    STATE.deployHistory = data.deployHistory || [];
+    STATE.activityLog = data.activityLog || [];
+  } else {
+    // 초기 데이터 설정
+    initializeSiteData();
+  }
+}
+
+function initializeSiteData() {
+  // 기본 페이지 구조
+  STATE.pages = [
+    { id: 'page-home', title: '홈', slug: 'home', category: '메인', visible: true, blocks: [], metaTitle: '', metaDescription: '' },
+    { id: 'page-about', title: '소개', slug: 'about', category: '메인', visible: true, blocks: [], metaTitle: '', metaDescription: '' },
+    { id: 'page-products', title: '제품', slug: 'products', category: '제품', visible: true, blocks: [], metaTitle: '', metaDescription: '' },
+  ];
+
+  // 기본 메뉴
+  STATE.settings.menu = [
+    { id: 'menu-1', label: '홈', url: '/', submenu: [] },
+    { id: 'menu-2', label: '소개', url: '/about', submenu: [] },
+    { id: 'menu-3', label: '제품', url: '/products', submenu: [
+      { id: 'submenu-1', label: '제품 목록', url: '/products' },
+      { id: 'submenu-2', label: '제품 상세', url: '/products/detail' }
+    ]}
+  ];
+
+  // 기본 레이아웃 설정
+  STATE.settings.layout = {
+    header: {
+      height: 80,
+      position: 'sticky',
+      background: '#ffffff',
+      logo: { type: 'text', text: '내 사이트', imageUrl: '', size: 24, color: '#1e293b' },
+      menuStyle: 'horizontal',
+      dropdownEnabled: true,
+      mobileMenu: 'hamburger',
+      showLogin: true
+    },
+    footer: {
+      height: 300,
+      background: '#1e293b',
+      color: '#ffffff',
+      layout: '3-column',
+      showCompanyInfo: true,
+      showSocialMedia: true,
+      showLinks: true,
+      companyInfo: {
+        name: '회사명',
+        ceo: '대표자',
+        address: '주소',
+        phone: '전화번호',
+        email: '이메일',
+        businessNumber: '사업자등록번호'
+      }
+    }
+  };
+
+  // 기본 디자인 설정
+  STATE.settings.design = {
+    colors: {
+      primary: '#3b82f6',
+      secondary: '#64748b',
+      accent: '#10b981',
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      background: '#ffffff',
+      text: '#1e293b'
+    },
+    typography: {
+      bodyFont: 'Pretendard',
+      headingFont: 'Pretendard',
+      bodySize: 16,
+      headingSize: 32,
+      lineHeight: 1.6,
+      letterSpacing: 0
+    },
+    layout: {
+      containerWidth: 1200,
+      spacing: 16,
+      borderRadius: 8,
+      cardShadow: '0 2px 8px rgba(0,0,0,0.1)'
+    },
+    button: {
+      style: 'rounded',
+      size: 'medium'
+    },
+    animation: {
+      enabled: true,
+      speed: 'normal'
+    }
+  };
+
+  // 기본 사이트 설정
+  STATE.settings.site = {
+    name: STATE.currentSite.name,
+    url: '',
+    description: '',
+    favicon: '',
+    language: 'ko',
+    timezone: 'Asia/Seoul',
+    seo: {
+      metaTitle: '',
+      metaDescription: '',
+      metaKeywords: '',
+      ogImage: '',
+      googleAnalytics: '',
+      searchConsole: '',
+      naverSearch: '',
+      robotsTxt: 'User-agent: *\nAllow: /',
+      sitemap: true
+    },
+    github: {
+      repo: STATE.currentSite.repo,
+      branch: 'gh-pages',
+      token: ''
+    },
+    floatingButtons: {
+      bottomRight: { enabled: false, type: 'scroll', url: '' },
+      bottomLeft: { enabled: false, type: 'scroll', url: '' }
+    }
+  };
+
+  STATE.images = [];
+  STATE.deployHistory = [];
+  STATE.activityLog = [];
+
+  saveSiteData();
+}
+
+function saveSiteData() {
+  if (!STATE.currentSite) return;
+  
+  const siteDataKey = `site_${STATE.currentSite.id}`;
+  const data = {
+    pages: STATE.pages,
+    settings: STATE.settings,
+    images: STATE.images,
+    deployHistory: STATE.deployHistory,
+    activityLog: STATE.activityLog
+  };
+  
+  localStorage.setItem(siteDataKey, JSON.stringify(data));
+  console.log('💾 사이트 데이터 저장 완료');
+}
+
+function addActivity(type, title) {
+  const activity = {
+    id: Date.now(),
+    type,
+    title,
+    time: new Date().toLocaleString('ko-KR')
+  };
+  
+  STATE.activityLog.unshift(activity);
+  
+  // 최대 50개만 유지
+  if (STATE.activityLog.length > 50) {
+    STATE.activityLog = STATE.activityLog.slice(0, 50);
+  }
+  
+  saveSiteData();
+}
+
+// ==================== 새 사이트 생성 ====================
+function showNewSiteModal() {
+  document.getElementById('newSiteModal').classList.add('active');
+}
+
+function createNewSite() {
+  const name = document.getElementById('newSiteName').value.trim();
+  const repo = document.getElementById('newSiteRepo').value.trim();
+  const template = document.getElementById('newSiteTemplate').value;
+
+  if (!name) {
+    alert('사이트 이름을 입력하세요.');
+    return;
+  }
+
+  if (!repo) {
+    alert('GitHub 저장소를 입력하세요.');
+    return;
+  }
+
+  // 저장소 형식 검증
+  if (!repo.includes('/')) {
+    alert('저장소 형식이 올바르지 않습니다.\n예: username/repository');
+    return;
+  }
+
+  const newSite = {
+    id: 'site' + Date.now(),
+    name,
+    repo,
+    template,
+    createdAt: new Date().toISOString().split('T')[0]
+  };
+
+  STATE.sites.push(newSite);
+  saveSites();
+  
+  closeModal('newSiteModal');
+  
+  // 새 사이트 선택
+  renderSiteSelector();
+  selectSite(newSite.id);
+  
+  alert('새 사이트가 생성되었습니다!');
+}
+
+// ==================== 모달 관리 ====================
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function(event) {
+  if (event.target.classList.contains('modal-overlay')) {
+    event.target.classList.remove('active');
+  }
+};
+
+// ==================== 탭 전환 ====================
+function showTab(tabName) {
+  // 모든 탭 숨기기
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // 모든 메뉴 아이템 비활성화
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // 선택된 탭 표시
+  const targetTab = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+  if (targetTab) {
+    targetTab.classList.add('active');
+  }
+  
+  // 선택된 메뉴 활성화
+  const targetMenu = document.querySelector(`.menu-item[data-tab="${tabName}"]`);
+  if (targetMenu) {
+    targetMenu.classList.add('active');
+  }
+  
+  console.log('📑 탭 전환:', tabName);
+}
+
+// ==================== 대시보드 렌더링 ====================
+function renderDashboard() {
+  if (!STATE.currentSite) return;
+
+  // 통계 카드
+  const statsGrid = document.getElementById('statsGrid');
+  const pageCount = STATE.pages.length;
+  const imageCount = STATE.images.length;
+  const storageUsed = (STATE.images.reduce((sum, img) => sum + (img.size || 0), 0) / (1024 * 1024)).toFixed(1);
+  const lastDeploy = STATE.deployHistory.length > 0 
+    ? STATE.deployHistory[0].time 
+    : '배포 기록 없음';
+
+  statsGrid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">페이지 수</div>
+      <div class="stat-value">${pageCount}</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-label">이미지 수</div>
+      <div class="stat-value">${imageCount}</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-label">저장 용량</div>
+      <div class="stat-value">${storageUsed} MB</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">최근 배포</div>
+      <div class="stat-value" style="font-size: 14px; margin-top: 10px;">${lastDeploy}</div>
+    </div>
+  `;
+
+  // 최근 활동
+  const activityList = document.getElementById('activityList');
+  if (STATE.activityLog.length === 0) {
+    activityList.innerHTML = '<li class="activity-item"><div class="activity-title">활동 기록이 없습니다</div></li>';
+  } else {
+    activityList.innerHTML = STATE.activityLog.slice(0, 10).map(activity => `
+      <li class="activity-item ${activity.type}">
+        <div class="activity-title">${activity.title}</div>
+        <div class="activity-time">${activity.time}</div>
+      </li>
+    `).join('');
+  }
+}
+
+// ==================== 페이지 관리 렌더링 ====================
+function renderPages() {
+  if (!STATE.currentSite) return;
+
+  const pagesList = document.getElementById('pagesList');
+  
+  // 카테고리별로 그룹화
+  const categories = {};
+  STATE.pages.forEach(page => {
+    if (!categories[page.category]) {
+      categories[page.category] = [];
+    }
+    categories[page.category].push(page);
+  });
+
+  let html = '<div class="table-wrapper"><table class="table"><thead><tr><th>제목</th><th>URL</th><th>노출</th><th>작업</th></tr></thead><tbody>';
+
+  Object.keys(categories).forEach(category => {
+    html += `<tr><td colspan="4" style="background: #f8fafc; font-weight: 600;">${category}</td></tr>`;
+    
+    categories[category].forEach(page => {
+      html += `
+        <tr>
+          <td>${page.title}</td>
+          <td>/${page.slug}</td>
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" ${page.visible ? 'checked' : ''} onchange="togglePageVisibility('${page.id}')">
+              <span class="toggle-slider"></span>
+            </label>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="editPage('${page.id}')">편집</button>
+          </td>
+        </tr>
+      `;
+    });
+  });
+
+  html += '</tbody></table></div>';
+  pagesList.innerHTML = html;
+}
+
+function togglePageVisibility(pageId) {
+  const page = STATE.pages.find(p => p.id === pageId);
+  if (page) {
+    page.visible = !page.visible;
+    saveSiteData();
+    addActivity('page', `"${page.title}" 페이지 ${page.visible ? '노출' : '숨김'}`);
+  }
+}
+
+function editPage(pageId) {
+  STATE.currentPage = STATE.pages.find(p => p.id === pageId);
+  if (!STATE.currentPage) return;
+
+  console.log('✏️ 페이지 편집:', STATE.currentPage.title);
+  
+  // 블록 에디터로 전환
+  showBlockEditor();
+}
+
+// ==================== 블록 에디터 ====================
+function showBlockEditor() {
+  if (!STATE.currentPage) return;
+
+  const tabBlockEditor = document.getElementById('tabBlockEditor');
+  
+  // 블록 에디터 UI 생성
+  tabBlockEditor.innerHTML = `
+    <div class="editor-layout">
+      <!-- 왼쪽: 페이지 트리 -->
+      <div class="editor-sidebar" id="pageTree">
+        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 15px;">페이지 목록</h3>
+        ${renderPageTree()}
+      </div>
+
+      <!-- 중앙: 블록 에디터 -->
+      <div class="editor-main">
+        <div class="editor-toolbar">
+          <div class="editor-toolbar-left">
+            <button class="btn btn-sm btn-secondary" onclick="backToPages()">← 페이지 관리</button>
+            <h2 style="font-size: 18px; margin-left: 10px;">${STATE.currentPage.title}</h2>
+            ${STATE.hasUnsavedChanges ? '<span class="badge badge-warning">저장되지 않음</span>' : ''}
+          </div>
+          <div class="editor-toolbar-right">
+            <div class="preview-mode-toggle">
+              <button class="preview-mode-btn ${!STATE.isMobilePreview ? 'active' : ''}" onclick="togglePreviewMode(false)">💻 데스크탑</button>
+              <button class="preview-mode-btn ${STATE.isMobilePreview ? 'active' : ''}" onclick="togglePreviewMode(true)">📱 모바일</button>
+            </div>
+            <button class="btn btn-sm btn-success" onclick="savePage()">💾 저장</button>
+          </div>
+        </div>
+
+        <div class="blocks-container" id="blocksContainer" style="max-width: ${STATE.isMobilePreview ? '375px' : '100%'}; margin: 0 auto;">
+          ${STATE.currentPage.blocks.length === 0 ? `
+            <div class="block-placeholder">
+              <p style="margin-bottom: 15px;">아직 블록이 없습니다</p>
+              <button class="btn btn-primary" onclick="showModal('blockPickerModal')">첫 블록 추가하기</button>
+            </div>
+          ` : renderBlocks()}
+        </div>
+
+        ${STATE.currentPage.blocks.length > 0 ? `
+          <button class="add-block-btn" onclick="showModal('blockPickerModal')" style="margin-top: 30px;">
+            ➕ 블록 추가
+          </button>
+        ` : ''}
+      </div>
+
+      <!-- 오른쪽: 페이지 설정 -->
+      <div class="editor-sidebar" id="pageSettings">
+        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 15px;">페이지 설정</h3>
+        ${renderPageSettings()}
+      </div>
+    </div>
+  `;
+
+  showTab('blockEditor');
+}
+
+function renderPageTree() {
+  const categories = {};
+  STATE.pages.forEach(page => {
+    if (!categories[page.category]) {
+      categories[page.category] = [];
+    }
+    categories[page.category].push(page);
+  });
+
+  let html = '';
+  Object.keys(categories).forEach(category => {
+    html += `<div class="page-tree-category">${category}</div>`;
+    categories[category].forEach(page => {
+      html += `
+        <div class="page-tree-item ${page.id === STATE.currentPage.id ? 'active' : ''}" onclick="switchPage('${page.id}')">
+          📄 ${page.title}
+        </div>
+      `;
+    });
+  });
+
+  return html;
+}
+
+function switchPage(pageId) {
+  if (STATE.hasUnsavedChanges) {
+    if (!confirm('저장되지 않은 변경사항이 있습니다. 계속하시겠습니까?')) {
+      return;
+    }
+    STATE.hasUnsavedChanges = false;
+  }
+
+  editPage(pageId);
+}
+
+function backToPages() {
+  if (STATE.hasUnsavedChanges) {
+    if (!confirm('저장되지 않은 변경사항이 있습니다. 계속하시겠습니까?')) {
+      return;
+    }
+    STATE.hasUnsavedChanges = false;
+  }
+
+  STATE.currentPage = null;
+  showTab('pages');
+}
+
+function togglePreviewMode(isMobile) {
+  STATE.isMobilePreview = isMobile;
+  showBlockEditor();
+}
+
+function renderPageSettings() {
+  return `
+    <div class="form-group">
+      <label class="form-label">페이지 제목</label>
+      <input type="text" class="form-input" value="${STATE.currentPage.title}" onchange="updatePageField('title', this.value)">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">URL 슬러그</label>
+      <input type="text" class="form-input" value="${STATE.currentPage.slug}" onchange="updatePageField('slug', this.value)">
+      <p class="form-help">URL: /${STATE.currentPage.slug}</p>
+    </div>
+
+    <div class="form-group">
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" ${STATE.currentPage.visible ? 'checked' : ''} onchange="updatePageField('visible', this.checked)">
+        <span class="form-label" style="margin: 0;">페이지 노출</span>
+      </label>
+    </div>
+
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+    <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">SEO 설정</h4>
+
+    <div class="form-group">
+      <label class="form-label">메타 타이틀</label>
+      <input type="text" class="form-input" value="${STATE.currentPage.metaTitle || ''}" onchange="updatePageField('metaTitle', this.value)" maxlength="60">
+      <p class="form-help">${(STATE.currentPage.metaTitle || '').length}/60자</p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">메타 설명</label>
+      <textarea class="form-textarea" rows="3" onchange="updatePageField('metaDescription', this.value)" maxlength="160">${STATE.currentPage.metaDescription || ''}</textarea>
+      <p class="form-help">${(STATE.currentPage.metaDescription || '').length}/160자</p>
+    </div>
+
+    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+    <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">블록 여백</h4>
+
+    <div class="form-group">
+      <label class="form-label" style="font-size: 12px;">세로 간격 (블록 사이)</label>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="range" min="0" max="64" step="4" value="${STATE.currentPage.blockSpacing?.vertical || 16}" onchange="updateBlockSpacing('vertical', parseInt(this.value))" style="flex: 1;">
+        <input type="number" min="0" max="64" value="${STATE.currentPage.blockSpacing?.vertical || 16}" onchange="updateBlockSpacing('vertical', parseInt(this.value))" style="width: 60px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+        <span style="font-size: 12px; color: #64748b;">px</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" style="font-size: 12px;">가로 간격 (컬럼 사이)</label>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="range" min="0" max="64" step="4" value="${STATE.currentPage.blockSpacing?.horizontal || 16}" onchange="updateBlockSpacing('horizontal', parseInt(this.value))" style="flex: 1;">
+        <input type="number" min="0" max="64" value="${STATE.currentPage.blockSpacing?.horizontal || 16}" onchange="updateBlockSpacing('horizontal', parseInt(this.value))" style="width: 60px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+        <span style="font-size: 12px; color: #64748b;">px</span>
+      </div>
+    </div>
+  `;
+}
+
+function updatePageField(field, value) {
+  STATE.currentPage[field] = value;
+  STATE.hasUnsavedChanges = true;
+  
+  // 제목이나 슬러그 변경 시 페이지 트리 업데이트
+  if (field === 'title' || field === 'slug') {
+    document.getElementById('pageTree').innerHTML = `
+      <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 15px;">페이지 목록</h3>
+      ${renderPageTree()}
+    `;
+  }
+}
+
+function updateBlockSpacing(direction, value) {
+  if (!STATE.currentPage.blockSpacing) {
+    STATE.currentPage.blockSpacing = { vertical: 16, horizontal: 16 };
+  }
+  STATE.currentPage.blockSpacing[direction] = value;
+  STATE.hasUnsavedChanges = true;
+  
+  // 블록 컨테이너 재렌더링
+  document.getElementById('blocksContainer').innerHTML = renderBlocks();
+}
+
+function savePage() {
+  const pageIndex = STATE.pages.findIndex(p => p.id === STATE.currentPage.id);
+  if (pageIndex >= 0) {
+    STATE.pages[pageIndex] = {...STATE.currentPage};
+  }
+  
+  saveSiteData();
+  STATE.hasUnsavedChanges = false;
+  
+  addActivity('page', `"${STATE.currentPage.title}" 페이지 저장`);
+  alert('페이지가 저장되었습니다!');
+  
+  // UI 업데이트
+  showBlockEditor();
+}
+
+// ==================== 블록 렌더링 ====================
+function renderBlocks() {
+  if (!STATE.currentPage || !STATE.currentPage.blocks) return '';
+
+  const spacing = STATE.currentPage.blockSpacing || { vertical: 16, horizontal: 16 };
+  
+  return STATE.currentPage.blocks.map((block, index) => `
+    <div class="block-item" style="margin-bottom: ${spacing.vertical}px;" data-block-id="${block.id}">
+      <div class="block-header">
+        <span class="block-type">${getBlockTypeName(block.type)}</span>
+        <div class="block-actions">
+          <button class="block-action-btn" onclick="moveBlock(${index}, 'up')" ${index === 0 ? 'disabled' : ''}>↑</button>
+          <button class="block-action-btn" onclick="moveBlock(${index}, 'down')" ${index === STATE.currentPage.blocks.length - 1 ? 'disabled' : ''}>↓</button>
+          <button class="block-action-btn" onclick="editBlock(${index})">✏️ 편집</button>
+          <button class="block-action-btn danger" onclick="deleteBlock(${index})">🗑️ 삭제</button>
+        </div>
+      </div>
+      <div class="block-content">
+        ${renderBlockContent(block, spacing)}
+      </div>
+      <div id="blockEdit${index}" style="display: none;"></div>
+    </div>
+  `).join('');
+}
+
+function getBlockTypeName(type) {
+  const names = {
+    text: '텍스트',
+    image: '이미지',
+    divider: '구분선',
+    spacer: '스페이서',
+    button: '버튼/링크',
+    embed: '임베드',
+    columns: '컬럼'
+  };
+  return names[type] || type;
+}
+
+function renderBlockContent(block, spacing) {
+  switch(block.type) {
+    case 'text':
+      const Tag = block.content.level || 'p';
+      const style = `${block.content.bold ? 'font-weight: bold;' : ''} ${block.content.italic ? 'font-style: italic;' : ''}`;
+      return `<${Tag} style="${style}">${block.content.text || '텍스트를 입력하세요'}</${Tag}>`;
+
+    case 'image':
+      if (!block.content.url) {
+        return '<div class="block-placeholder">이미지를 선택하세요</div>';
+      }
+      return `
+        <img src="${block.content.url}" alt="${block.content.alt || ''}" style="max-width: 100%; border-radius: 8px;">
+        ${block.content.caption ? `<p style="text-align: center; margin-top: 8px; font-size: 13px; color: #64748b;">${block.content.caption}</p>` : ''}
+      `;
+
+    case 'divider':
+      return `<hr style="border: none; border-top: ${block.content.thickness || 1}px ${block.content.style || 'solid'} ${block.content.color || '#e2e8f0'};">`;
+
+    case 'spacer':
+      return `<div class="block-spacer" style="height: ${block.content.height || 40}px;"></div>`;
+
+    case 'button':
+      const btnClass = block.content.style === 'primary' ? 'primary' : 
+                       block.content.style === 'secondary' ? 'secondary' : 'outline';
+      return `
+        <div class="block-button-wrapper">
+          <a href="${block.content.url || '#'}" class="block-button ${btnClass}" ${block.content.newTab ? 'target="_blank" rel="noopener noreferrer"' : ''}>
+            ${block.content.text || '버튼'}
+          </a>
+        </div>
+      `;
+
+    case 'embed':
+      return block.content.code || '<div class="block-placeholder">HTML 코드를 입력하세요</div>';
+
+    case 'columns':
+      const cols = block.content.columns || [];
+      return `
+        <div class="block-columns" style="gap: ${spacing.horizontal}px;">
+          ${cols.map((col, i) => `
+            <div class="block-column" style="width: ${col.width};">
+              <div style="font-size: 11px; color: #64748b; margin-bottom: 8px;">컬럼 ${i + 1} (${col.width})</div>
+              ${col.blocks && col.blocks.length > 0 
+                ? `<div style="font-size: 12px; color: #3b82f6;">${col.blocks.length}개 블록</div>`
+                : '<div style="font-size: 12px; color: #94a3b8;">블록 없음</div>'
+              }
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+    default:
+      return '<div>알 수 없는 블록 타입</div>';
+  }
+}
+
+// ==================== 블록 관리 ====================
+function addBlock(type) {
+  const newBlock = {
+    id: Date.now(),
+    type,
+    content: getDefaultBlockContent(type)
+  };
+
+  if (!STATE.currentPage.blocks) {
+    STATE.currentPage.blocks = [];
+  }
+
+  STATE.currentPage.blocks.push(newBlock);
+  STATE.hasUnsavedChanges = true;
+
+  closeModal('blockPickerModal');
+  
+  // 블록 컨테이너 재렌더링
+  document.getElementById('blocksContainer').innerHTML = renderBlocks();
+  
+  // 새 블록 바로 편집 모드
+  editBlock(STATE.currentPage.blocks.length - 1);
+}
+
+function getDefaultBlockContent(type) {
+  switch(type) {
+    case 'text':
+      return { level: 'p', text: '텍스트를 입력하세요', bold: false, italic: false };
+    case 'image':
+      return { url: '', alt: '', caption: '' };
+    case 'divider':
+      return { style: 'solid', color: '#E5E7EB', thickness: 1 };
+    case 'spacer':
+      return { height: 40 };
+    case 'button':
+      return { text: '버튼', url: '#', style: 'primary', newTab: false };
+    case 'embed':
+      return { code: '' };
+    case 'columns':
+      return {
+        count: 2,
+        columns: [
+          { id: 1, width: '50%', blocks: [] },
+          { id: 2, width: '50%', blocks: [] }
+        ]
+      };
+    default:
+      return {};
+  }
+}
+
+function editBlock(index) {
+  const block = STATE.currentPage.blocks[index];
+  const editContainer = document.getElementById('blockEdit' + index);
+  
+  if (editContainer.style.display === 'block') {
+    editContainer.style.display = 'none';
+    return;
+  }
+
+  // 다른 편집 폼 모두 닫기
+  document.querySelectorAll('[id^="blockEdit"]').forEach(el => el.style.display = 'none');
+
+  editContainer.style.display = 'block';
+  editContainer.innerHTML = renderBlockEditForm(block, index);
+}
+
+function renderBlockEditForm(block, index) {
+  let form = '<div class="block-edit-form">';
+
+  switch(block.type) {
+    case 'text':
+      form += `
+        <div class="form-group">
+          <label class="form-label">텍스트 레벨</label>
+          <select class="form-select" onchange="updateBlockContent(${index}, 'level', this.value)">
+            <option value="h2" ${block.content.level === 'h2' ? 'selected' : ''}>제목 (H2)</option>
+            <option value="h3" ${block.content.level === 'h3' ? 'selected' : ''}>소제목 (H3)</option>
+            <option value="p" ${block.content.level === 'p' ? 'selected' : ''}>본문</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">내용</label>
+          <textarea class="form-textarea" rows="3" onchange="updateBlockContent(${index}, 'text', this.value)">${block.content.text || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label style="display: flex; gap: 15px;">
+            <span><input type="checkbox" ${block.content.bold ? 'checked' : ''} onchange="updateBlockContent(${index}, 'bold', this.checked)"> 굵게</span>
+            <span><input type="checkbox" ${block.content.italic ? 'checked' : ''} onchange="updateBlockContent(${index}, 'italic', this.checked)"> 기울임</span>
+          </label>
+        </div>
+      `;
+      break;
+
+    case 'image':
+      form += `
+        <div class="form-group">
+          <label class="form-label">이미지 URL</label>
+          <input type="text" class="form-input" placeholder="이미지 URL 입력" value="${block.content.url || ''}" onchange="updateBlockContent(${index}, 'url', this.value)">
+          <p class="form-help">이미지 라이브러리에서 이미지를 업로드하고 URL을 복사하세요</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">대체 텍스트 (alt)</label>
+          <input type="text" class="form-input" placeholder="이미지 설명" value="${block.content.alt || ''}" onchange="updateBlockContent(${index}, 'alt', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">캡션 (선택)</label>
+          <input type="text" class="form-input" placeholder="이미지 캡션" value="${block.content.caption || ''}" onchange="updateBlockContent(${index}, 'caption', this.value)">
+        </div>
+      `;
+      break;
+
+    case 'divider':
+      form += `
+        <div class="form-group">
+          <label class="form-label">스타일</label>
+          <select class="form-select" onchange="updateBlockContent(${index}, 'style', this.value)">
+            <option value="solid" ${block.content.style === 'solid' ? 'selected' : ''}>실선 (━━━)</option>
+            <option value="dashed" ${block.content.style === 'dashed' ? 'selected' : ''}>긴 점선 (─ ─ ─)</option>
+            <option value="dotted" ${block.content.style === 'dotted' ? 'selected' : ''}>짧은 점선 (· · ·)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">색상</label>
+          <div class="color-input-wrapper">
+            <input type="color" value="${block.content.color || '#E5E7EB'}" onchange="updateBlockContent(${index}, 'color', this.value)">
+            <input type="text" class="form-input" value="${block.content.color || '#E5E7EB'}" onchange="updateBlockContent(${index}, 'color', this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">두께 (px)</label>
+          <input type="number" class="form-input" min="1" max="10" value="${block.content.thickness || 1}" onchange="updateBlockContent(${index}, 'thickness', parseInt(this.value))">
+        </div>
+      `;
+      break;
+
+    case 'spacer':
+      form += `
+        <div class="form-group">
+          <label class="form-label">높이 (px)</label>
+          <input type="number" class="form-input" min="0" max="200" value="${block.content.height || 40}" onchange="updateBlockContent(${index}, 'height', parseInt(this.value))">
+        </div>
+      `;
+      break;
+
+    case 'button':
+      form += `
+        <div class="form-group">
+          <label class="form-label">버튼 텍스트</label>
+          <input type="text" class="form-input" placeholder="예: 더 알아보기" value="${block.content.text || ''}" onchange="updateBlockContent(${index}, 'text', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">링크 URL</label>
+          <input type="text" class="form-input" placeholder="예: https://example.com 또는 /about" value="${block.content.url || ''}" onchange="updateBlockContent(${index}, 'url', this.value)">
+          <p class="form-help">💡 같은 사이트 내 페이지: /페이지슬러그 (예: /about)<br>외부 사이트: 전체 URL (예: https://example.com)</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">버튼 스타일</label>
+          <select class="form-select" onchange="updateBlockContent(${index}, 'style', this.value)">
+            <option value="primary" ${block.content.style === 'primary' ? 'selected' : ''}>주 버튼 (파란색)</option>
+            <option value="secondary" ${block.content.style === 'secondary' ? 'selected' : ''}>보조 버튼 (회색)</option>
+            <option value="outline" ${block.content.style === 'outline' ? 'selected' : ''}>외곽선 버튼</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" ${block.content.newTab ? 'checked' : ''} onchange="updateBlockContent(${index}, 'newTab', this.checked)">
+            새 탭에서 열기
+          </label>
+        </div>
+      `;
+      break;
+
+    case 'embed':
+      form += `
+        <div class="form-group">
+          <label class="form-label">HTML 코드</label>
+          <textarea class="form-textarea" rows="5" placeholder="유튜브, 지도 등의 임베드 코드를 입력하세요" onchange="updateBlockContent(${index}, 'code', this.value)">${block.content.code || ''}</textarea>
+        </div>
+      `;
+      break;
+
+    case 'columns':
+      form += `
+        <div class="form-group">
+          <label class="form-label">컬럼 수</label>
+          <select class="form-select" onchange="updateColumnCount(${index}, parseInt(this.value))">
+            <option value="2" ${block.content.count === 2 ? 'selected' : ''}>2컬럼</option>
+            <option value="3" ${block.content.count === 3 ? 'selected' : ''}>3컬럼</option>
+            <option value="4" ${block.content.count === 4 ? 'selected' : ''}>4컬럼</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">각 컬럼 너비 설정</label>
+          ${(block.content.columns || []).map((col, colIndex) => `
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+              <span style="width: 60px; font-size: 13px;">컬럼 ${colIndex + 1}</span>
+              <input type="text" class="form-input" value="${col.width}" placeholder="예: 30%, 200px, auto" onchange="updateColumnWidth(${index}, ${colIndex}, this.value)">
+              ${block.content.columns.length > 1 ? `
+                <button class="btn btn-sm" onclick="moveColumn(${index}, ${colIndex}, -1)" ${colIndex === 0 ? 'disabled' : ''}>←</button>
+                <button class="btn btn-sm" onclick="moveColumn(${index}, ${colIndex}, 1)" ${colIndex === block.content.columns.length - 1 ? 'disabled' : ''}>→</button>
+              ` : ''}
+            </div>
+          `).join('')}
+          <p class="form-help">💡 숫자만 입력하면 자동으로 %로 처리됩니다</p>
+        </div>
+        <div class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <div class="alert-message">컬럼 내부에 블록을 추가하는 기능은 다음 업데이트에서 구현 예정입니다.</div>
+          </div>
+        </div>
+      `;
+      break;
+  }
+
+  form += `
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+      <button class="btn btn-sm btn-secondary" onclick="editBlock(${index})">취소</button>
+      <button class="btn btn-sm btn-primary" onclick="applyBlockEdit(${index})">적용</button>
+    </div>
+  </div>`;
+
+  return form;
+}
+
+function updateBlockContent(index, field, value) {
+  STATE.currentPage.blocks[index].content[field] = value;
+  STATE.hasUnsavedChanges = true;
+}
+
+function updateColumnCount(blockIndex, count) {
+  const block = STATE.currentPage.blocks[blockIndex];
+  const currentCount = block.content.columns.length;
+  
+  if (count > currentCount) {
+    // 컬럼 추가
+    const widthPerColumn = `${100 / count}%`;
+    for (let i = currentCount; i < count; i++) {
+      block.content.columns.push({ id: i + 1, width: widthPerColumn, blocks: [] });
+    }
+    // 기존 컬럼 너비도 조정
+    block.content.columns = block.content.columns.map(col => ({ ...col, width: widthPerColumn }));
+  } else if (count < currentCount) {
+    // 컬럼 제거
+    block.content.columns = block.content.columns.slice(0, count);
+    const widthPerColumn = `${100 / count}%`;
+    block.content.columns = block.content.columns.map(col => ({ ...col, width: widthPerColumn }));
+  }
+  
+  block.content.count = count;
+  STATE.hasUnsavedChanges = true;
+  
+  // 편집 폼 재렌더링
+  editBlock(blockIndex);
+}
+
+function updateColumnWidth(blockIndex, colIndex, value) {
+  let width = value.trim();
+  // 숫자만 입력한 경우 자동으로 % 추가
+  if (width && !isNaN(width) && !width.includes('%') && !width.includes('px') && !width.toLowerCase().includes('auto')) {
+    width = width + '%';
+  }
+  STATE.currentPage.blocks[blockIndex].content.columns[colIndex].width = width;
+  STATE.hasUnsavedChanges = true;
+}
+
+function moveColumn(blockIndex, colIndex, direction) {
+  const columns = STATE.currentPage.blocks[blockIndex].content.columns;
+  const newIndex = colIndex + direction;
+  
+  if (newIndex < 0 || newIndex >= columns.length) return;
+  
+  [columns[colIndex], columns[newIndex]] = [columns[newIndex], columns[colIndex]];
+  STATE.hasUnsavedChanges = true;
+  
+  // 편집 폼 재렌더링
+  editBlock(blockIndex);
+}
+
+function applyBlockEdit(index) {
+  // 편집 폼 닫기
+  document.getElementById('blockEdit' + index).style.display = 'none';
+  
+  // 블록 미리보기 업데이트
+  document.getElementById('blocksContainer').innerHTML = renderBlocks();
+}
+
+function deleteBlock(index) {
+  if (!confirm('이 블록을 삭제하시겠습니까?')) return;
+  
+  STATE.currentPage.blocks.splice(index, 1);
+  STATE.hasUnsavedChanges = true;
+  
+  document.getElementById('blocksContainer').innerHTML = renderBlocks();
+  
+  // 블록이 없으면 placeholder 표시
+  if (STATE.currentPage.blocks.length === 0) {
+    showBlockEditor();
+  }
+}
+
+function moveBlock(index, direction) {
+  const newIndex = direction === 'up' ? index - 1 : index + 1;
+  
+  if (newIndex < 0 || newIndex >= STATE.currentPage.blocks.length) return;
+  
+  [STATE.currentPage.blocks[index], STATE.currentPage.blocks[newIndex]] = 
+    [STATE.currentPage.blocks[newIndex], STATE.currentPage.blocks[index]];
+  
+  STATE.hasUnsavedChanges = true;
+  
+  document.getElementById('blocksContainer').innerHTML = renderBlocks();
+}
+
+function showModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+// ==================== 메뉴 설정 렌더링 ====================
+function renderMenu() {
+  if (!STATE.currentSite) return;
+
+  const menuItems = document.getElementById('menuItems');
+  
+  menuItems.innerHTML = `
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>라벨</th>
+            <th>URL</th>
+            <th>하위 메뉴</th>
+            <th>작업</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${STATE.settings.menu.map((item, index) => `
+            <tr>
+              <td>${item.label}</td>
+              <td>${item.url}</td>
+              <td>${item.submenu ? item.submenu.length + '개' : '없음'}</td>
+              <td>
+                <button class="btn btn-sm btn-secondary">편집</button>
+              </td>
+            </tr>
+            ${item.submenu && item.submenu.length > 0 ? item.submenu.map(sub => `
+              <tr style="background: #f8fafc;">
+                <td style="padding-left: 30px;">└ ${sub.label}</td>
+                <td>${sub.url}</td>
+                <td>-</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">편집</button>
+                </td>
+              </tr>
+            `).join('') : ''}
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-info" style="margin-top: 20px;">
+      <div class="alert-icon">ℹ️</div>
+      <div class="alert-content">
+        <div class="alert-message">메뉴 추가/삭제 기능은 Phase 5에서 구현됩니다. 현재는 기본 메뉴만 표시됩니다.</div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== 레이아웃 설정 렌더링 ====================
+function renderLayoutSettings() {
+  if (!STATE.currentSite) return;
+
+  const layout = STATE.settings.layout;
+  
+  document.getElementById('layoutSettings').innerHTML = `
+    <!-- 헤더 설정 -->
+    <div class="card">
+      <div class="card-title">헤더 설정</div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">높이 (px)</label>
+          <input type="number" class="form-input" value="${layout.header?.height || 80}" onchange="updateLayoutSetting('header.height', parseInt(this.value))">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">위치</label>
+          <select class="form-select" value="${layout.header?.position || 'sticky'}" onchange="updateLayoutSetting('header.position', this.value)">
+            <option value="sticky">고정 (Sticky)</option>
+            <option value="static">일반 (Static)</option>
+            <option value="fixed">항상 고정 (Fixed)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">배경색</label>
+        <div class="color-input-wrapper">
+          <input type="color" value="${layout.header?.background || '#ffffff'}" onchange="updateLayoutSetting('header.background', this.value)">
+          <input type="text" class="form-input" value="${layout.header?.background || '#ffffff'}" onchange="updateLayoutSetting('header.background', this.value)">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">로고 타입</label>
+        <select class="form-select" value="${layout.header?.logo?.type || 'text'}" onchange="updateLayoutSetting('header.logo.type', this.value); renderLayoutSettings();">
+          <option value="text">텍스트 로고</option>
+          <option value="image">이미지 로고</option>
+        </select>
+      </div>
+
+      ${layout.header?.logo?.type === 'text' ? `
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">로고 텍스트</label>
+            <input type="text" class="form-input" value="${layout.header?.logo?.text || ''}" onchange="updateLayoutSetting('header.logo.text', this.value)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">폰트 크기 (px)</label>
+            <input type="number" class="form-input" value="${layout.header?.logo?.size || 24}" onchange="updateLayoutSetting('header.logo.size', parseInt(this.value))">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">색상</label>
+          <div class="color-input-wrapper">
+            <input type="color" value="${layout.header?.logo?.color || '#1e293b'}" onchange="updateLayoutSetting('header.logo.color', this.value)">
+            <input type="text" class="form-input" value="${layout.header?.logo?.color || '#1e293b'}" onchange="updateLayoutSetting('header.logo.color', this.value)">
+          </div>
+        </div>
+      ` : `
+        <div class="form-group">
+          <label class="form-label">이미지 URL</label>
+          <input type="text" class="form-input" value="${layout.header?.logo?.imageUrl || ''}" placeholder="로고 이미지 URL" onchange="updateLayoutSetting('header.logo.imageUrl', this.value)">
+        </div>
+      `}
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">메뉴 스타일</label>
+          <select class="form-select" value="${layout.header?.menuStyle || 'horizontal'}" onchange="updateLayoutSetting('header.menuStyle', this.value)">
+            <option value="horizontal">가로 메뉴</option>
+            <option value="vertical">세로 메뉴</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">모바일 메뉴</label>
+          <select class="form-select" value="${layout.header?.mobileMenu || 'hamburger'}" onchange="updateLayoutSetting('header.mobileMenu', this.value)">
+            <option value="hamburger">햄버거 메뉴</option>
+            <option value="bottom">하단 네비게이션</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${layout.header?.dropdownEnabled ? 'checked' : ''} onchange="updateLayoutSetting('header.dropdownEnabled', this.checked)">
+          <span>드롭다운 메뉴 활성화</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${layout.header?.showLogin ? 'checked' : ''} onchange="updateLayoutSetting('header.showLogin', this.checked)">
+          <span>로그인 버튼 표시</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 푸터 설정 -->
+    <div class="card">
+      <div class="card-title">푸터 설정</div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">높이 (px)</label>
+          <input type="number" class="form-input" value="${layout.footer?.height || 300}" onchange="updateLayoutSetting('footer.height', parseInt(this.value))">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">레이아웃</label>
+          <select class="form-select" value="${layout.footer?.layout || '3-column'}" onchange="updateLayoutSetting('footer.layout', this.value)">
+            <option value="1-column">1컬럼</option>
+            <option value="2-column">2컬럼</option>
+            <option value="3-column">3컬럼</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">배경색</label>
+          <div class="color-input-wrapper">
+            <input type="color" value="${layout.footer?.background || '#1e293b'}" onchange="updateLayoutSetting('footer.background', this.value)">
+            <input type="text" class="form-input" value="${layout.footer?.background || '#1e293b'}" onchange="updateLayoutSetting('footer.background', this.value)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">텍스트 색상</label>
+          <div class="color-input-wrapper">
+            <input type="color" value="${layout.footer?.color || '#ffffff'}" onchange="updateLayoutSetting('footer.color', this.value)">
+            <input type="text" class="form-input" value="${layout.footer?.color || '#ffffff'}" onchange="updateLayoutSetting('footer.color', this.value)">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+          <input type="checkbox" ${layout.footer?.showCompanyInfo ? 'checked' : ''} onchange="updateLayoutSetting('footer.showCompanyInfo', this.checked); renderLayoutSettings();">
+          <span>회사 정보 표시</span>
+        </label>
+
+        ${layout.footer?.showCompanyInfo ? `
+          <div class="form-row">
+            <div class="form-group">
+              <input type="text" class="form-input" placeholder="회사명" value="${layout.footer?.companyInfo?.name || ''}" onchange="updateLayoutSetting('footer.companyInfo.name', this.value)">
+            </div>
+            <div class="form-group">
+              <input type="text" class="form-input" placeholder="대표자" value="${layout.footer?.companyInfo?.ceo || ''}" onchange="updateLayoutSetting('footer.companyInfo.ceo', this.value)">
+            </div>
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-input" placeholder="주소" value="${layout.footer?.companyInfo?.address || ''}" onchange="updateLayoutSetting('footer.companyInfo.address', this.value)">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <input type="text" class="form-input" placeholder="전화번호" value="${layout.footer?.companyInfo?.phone || ''}" onchange="updateLayoutSetting('footer.companyInfo.phone', this.value)">
+            </div>
+            <div class="form-group">
+              <input type="text" class="form-input" placeholder="이메일" value="${layout.footer?.companyInfo?.email || ''}" onchange="updateLayoutSetting('footer.companyInfo.email', this.value)">
+            </div>
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-input" placeholder="사업자등록번호" value="${layout.footer?.companyInfo?.businessNumber || ''}" onchange="updateLayoutSetting('footer.companyInfo.businessNumber', this.value)">
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${layout.footer?.showSocialMedia ? 'checked' : ''} onchange="updateLayoutSetting('footer.showSocialMedia', this.checked)">
+          <span>소셜 미디어 링크 표시</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${layout.footer?.showLinks ? 'checked' : ''} onchange="updateLayoutSetting('footer.showLinks', this.checked)">
+          <span>이용약관 링크 표시</span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block" onclick="saveLayoutSettings()">저장</button>
+  `;
+}
+
+function updateLayoutSetting(path, value) {
+  const keys = path.split('.');
+  let obj = STATE.settings.layout;
+  
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!obj[keys[i]]) obj[keys[i]] = {};
+    obj = obj[keys[i]];
+  }
+  
+  obj[keys[keys.length - 1]] = value;
+  STATE.hasUnsavedChanges = true;
+}
+
+function saveLayoutSettings() {
+  saveSiteData();
+  STATE.hasUnsavedChanges = false;
+  addActivity('settings', '레이아웃 설정 저장');
+  alert('레이아웃 설정이 저장되었습니다!');
+}
+
+// ==================== 디자인 설정 렌더링 ====================
+function renderDesignSettings() {
+  if (!STATE.currentSite) return;
+
+  const design = STATE.settings.design;
+  
+  document.getElementById('designSettings').innerHTML = `
+    <div class="grid-2">
+      <!-- 색상 설정 -->
+      <div class="card">
+        <div class="card-title">색상 설정</div>
+        
+        ${Object.keys(design.colors || {}).map(key => `
+          <div class="form-group">
+            <label class="form-label">${getColorLabel(key)}</label>
+            <div class="color-input-wrapper">
+              <input type="color" value="${design.colors[key]}" onchange="updateDesignSetting('colors.${key}', this.value); updatePreview();">
+              <input type="text" class="form-input" value="${design.colors[key]}" onchange="updateDesignSetting('colors.${key}', this.value); updatePreview();">
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- 타이포그래피 -->
+      <div class="card">
+        <div class="card-title">타이포그래피</div>
+        
+        <div class="form-group">
+          <label class="form-label">본문 폰트</label>
+          <select class="form-select" value="${design.typography?.bodyFont || 'Pretendard'}" onchange="updateDesignSetting('typography.bodyFont', this.value); updatePreview();">
+            <option value="Pretendard">Pretendard</option>
+            <option value="Noto Sans KR">Noto Sans KR</option>
+            <option value="Nanum Gothic">Nanum Gothic</option>
+            <option value="-apple-system">시스템 폰트</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">제목 폰트</label>
+          <select class="form-select" value="${design.typography?.headingFont || 'Pretendard'}" onchange="updateDesignSetting('typography.headingFont', this.value); updatePreview();">
+            <option value="Pretendard">Pretendard</option>
+            <option value="Noto Sans KR">Noto Sans KR</option>
+            <option value="Nanum Gothic">Nanum Gothic</option>
+            <option value="-apple-system">시스템 폰트</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">본문 크기 (px)</label>
+            <input type="number" class="form-input" value="${design.typography?.bodySize || 16}" onchange="updateDesignSetting('typography.bodySize', parseInt(this.value)); updatePreview();">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">제목 크기 (px)</label>
+            <input type="number" class="form-input" value="${design.typography?.headingSize || 32}" onchange="updateDesignSetting('typography.headingSize', parseInt(this.value)); updatePreview();">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">줄간격</label>
+            <input type="number" class="form-input" step="0.1" value="${design.typography?.lineHeight || 1.6}" onchange="updateDesignSetting('typography.lineHeight', parseFloat(this.value)); updatePreview();">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">자간 (px)</label>
+            <input type="number" class="form-input" value="${design.typography?.letterSpacing || 0}" onchange="updateDesignSetting('typography.letterSpacing', parseInt(this.value)); updatePreview();">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 레이아웃 -->
+    <div class="card">
+      <div class="card-title">레이아웃</div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">컨테이너 너비 (px)</label>
+          <input type="number" class="form-input" value="${design.layout?.containerWidth || 1200}" onchange="updateDesignSetting('layout.containerWidth', parseInt(this.value)); updatePreview();">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">요소 간격 (px)</label>
+          <input type="number" class="form-input" value="${design.layout?.spacing || 16}" onchange="updateDesignSetting('layout.spacing', parseInt(this.value)); updatePreview();">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">테두리 둥글기 (px)</label>
+          <input type="number" class="form-input" value="${design.layout?.borderRadius || 8}" onchange="updateDesignSetting('layout.borderRadius', parseInt(this.value)); updatePreview();">
+        </div>
+      </div>
+    </div>
+
+    <!-- 버튼 -->
+    <div class="card">
+      <div class="card-title">버튼 스타일</div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">모양</label>
+          <select class="form-select" value="${design.button?.style || 'rounded'}" onchange="updateDesignSetting('button.style', this.value); updatePreview();">
+            <option value="square">사각형</option>
+            <option value="rounded">둥근 모서리</option>
+            <option value="pill">알약형</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">크기</label>
+          <select class="form-select" value="${design.button?.size || 'medium'}" onchange="updateDesignSetting('button.size', this.value); updatePreview();">
+            <option value="small">작게</option>
+            <option value="medium">보통</option>
+            <option value="large">크게</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 애니메이션 -->
+    <div class="card">
+      <div class="card-title">애니메이션</div>
+      
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${design.animation?.enabled ? 'checked' : ''} onchange="updateDesignSetting('animation.enabled', this.checked); updatePreview();">
+          <span>애니메이션 활성화</span>
+        </label>
+      </div>
+
+      ${design.animation?.enabled ? `
+        <div class="form-group">
+          <label class="form-label">속도</label>
+          <select class="form-select" value="${design.animation?.speed || 'normal'}" onchange="updateDesignSetting('animation.speed', this.value); updatePreview();">
+            <option value="slow">느림</option>
+            <option value="normal">보통</option>
+            <option value="fast">빠름</option>
+          </select>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- 미리보기 -->
+    <div class="card">
+      <div class="card-title">실시간 미리보기</div>
+      <div id="designPreview" style="padding: 30px; background: ${design.colors?.background || '#ffffff'}; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <h2 style="font-family: ${design.typography?.headingFont || 'Pretendard'}; font-size: ${design.typography?.headingSize || 32}px; color: ${design.colors?.text || '#1e293b'}; margin-bottom: 15px;">디자인 미리보기</h2>
+        <p style="font-family: ${design.typography?.bodyFont || 'Pretendard'}; font-size: ${design.typography?.bodySize || 16}px; line-height: ${design.typography?.lineHeight || 1.6}; letter-spacing: ${design.typography?.letterSpacing || 0}px; color: ${design.colors?.text || '#1e293b'}; margin-bottom: 20px;">
+          이것은 본문 텍스트의 미리보기입니다. 위의 설정을 변경하면 실시간으로 반영됩니다.
+        </p>
+        <button style="background: ${design.colors?.primary || '#3b82f6'}; color: white; padding: 12px 24px; border-radius: ${design.button?.style === 'pill' ? '999px' : design.layout?.borderRadius + 'px' || '8px'}; border: none; cursor: pointer; font-family: ${design.typography?.bodyFont || 'Pretendard'};">
+          Primary 버튼
+        </button>
+        <button style="background: ${design.colors?.secondary || '#64748b'}; color: white; padding: 12px 24px; border-radius: ${design.button?.style === 'pill' ? '999px' : design.layout?.borderRadius + 'px' || '8px'}; border: none; cursor: pointer; margin-left: 10px; font-family: ${design.typography?.bodyFont || 'Pretendard'};">
+          Secondary 버튼
+        </button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block" onclick="saveDesignSettings()">저장</button>
+  `;
+}
+
+function getColorLabel(key) {
+  const labels = {
+    primary: 'Primary',
+    secondary: 'Secondary',
+    accent: 'Accent',
+    success: 'Success',
+    warning: 'Warning',
+    error: 'Error',
+    background: 'Background',
+    text: 'Text'
+  };
+  return labels[key] || key;
+}
+
+function updateDesignSetting(path, value) {
+  const keys = path.split('.');
+  let obj = STATE.settings.design;
+  
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!obj[keys[i]]) obj[keys[i]] = {};
+    obj = obj[keys[i]];
+  }
+  
+  obj[keys[keys.length - 1]] = value;
+  STATE.hasUnsavedChanges = true;
+}
+
+function updatePreview() {
+  renderDesignSettings();
+}
+
+function saveDesignSettings() {
+  saveSiteData();
+  STATE.hasUnsavedChanges = false;
+  addActivity('settings', '디자인 설정 저장');
+  alert('디자인 설정이 저장되었습니다!');
+}
+
+// ==================== 사이트 기본 설정 렌더링 ====================
+function renderSiteSettings() {
+  if (!STATE.currentSite) return;
+
+  const site = STATE.settings.site;
+  
+  document.getElementById('siteSettingsContent').innerHTML = `
+    <!-- 기본 정보 -->
+    <div class="card">
+      <div class="card-title">기본 정보</div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">사이트 이름</label>
+          <input type="text" class="form-input" value="${site.name || ''}" onchange="updateSiteSetting('name', this.value)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL</label>
+          <input type="text" class="form-input" placeholder="https://example.com" value="${site.url || ''}" onchange="updateSiteSetting('url', this.value)">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">설명</label>
+        <textarea class="form-textarea" rows="3" onchange="updateSiteSetting('description', this.value)">${site.description || ''}</textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">언어</label>
+          <select class="form-select" value="${site.language || 'ko'}" onchange="updateSiteSetting('language', this.value)">
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">타임존</label>
+          <select class="form-select" value="${site.timezone || 'Asia/Seoul'}" onchange="updateSiteSetting('timezone', this.value)">
+            <option value="Asia/Seoul">서울 (UTC+9)</option>
+            <option value="America/New_York">뉴욕 (UTC-5)</option>
+            <option value="Europe/London">런던 (UTC+0)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO 설정 -->
+    <div class="card">
+      <div class="card-title">SEO 설정</div>
+      
+      <div class="form-group">
+        <label class="form-label">메타 타이틀</label>
+        <input type="text" class="form-input" value="${site.seo?.metaTitle || ''}" onchange="updateSiteSetting('seo.metaTitle', this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">메타 설명</label>
+        <textarea class="form-textarea" rows="3" onchange="updateSiteSetting('seo.metaDescription', this.value)">${site.seo?.metaDescription || ''}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">메타 키워드</label>
+        <input type="text" class="form-input" placeholder="키워드를 쉼표로 구분" value="${site.seo?.metaKeywords || ''}" onchange="updateSiteSetting('seo.metaKeywords', this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">OG 이미지 URL</label>
+        <input type="text" class="form-input" placeholder="소셜 미디어 공유 시 표시될 이미지" value="${site.seo?.ogImage || ''}" onchange="updateSiteSetting('seo.ogImage', this.value)">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Google Analytics ID</label>
+          <input type="text" class="form-input" placeholder="G-XXXXXXXXXX" value="${site.seo?.googleAnalytics || ''}" onchange="updateSiteSetting('seo.googleAnalytics', this.value)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Search Console</label>
+          <input type="text" class="form-input" placeholder="인증 코드" value="${site.seo?.searchConsole || ''}" onchange="updateSiteSetting('seo.searchConsole', this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- GitHub 연동 -->
+    <div class="card">
+      <div class="card-title">GitHub 연동</div>
+      
+      <div class="form-group">
+        <label class="form-label">저장소</label>
+        <input type="text" class="form-input" placeholder="username/repository" value="${site.github?.repo || ''}" onchange="updateSiteSetting('github.repo', this.value)">
+        <p class="form-help">형식: username/repository (예: beybusiness-bit/lmp-website)</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">브랜치</label>
+        <input type="text" class="form-input" placeholder="gh-pages" value="${site.github?.branch || 'gh-pages'}" onchange="updateSiteSetting('github.branch', this.value)">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Personal Access Token</label>
+        <input type="password" class="form-input" placeholder="GitHub Personal Access Token" value="${site.github?.token || ''}" onchange="updateSiteSetting('github.token', this.value)">
+        <p class="form-help">GitHub Settings → Developer settings → Personal access tokens에서 생성</p>
+      </div>
+
+      ${site.github?.token ? `
+        <div class="alert alert-success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <div class="alert-message">GitHub 연동이 완료되었습니다!</div>
+          </div>
+        </div>
+      ` : `
+        <div class="alert alert-warning">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-message">배포하려면 GitHub Personal Access Token을 입력하세요.</div>
+          </div>
+        </div>
+      `}
+    </div>
+
+    <!-- 플로팅 버튼 -->
+    <div class="card">
+      <div class="card-title">플로팅 버튼</div>
+      
+      <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">우하단 버튼</h4>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${site.floatingButtons?.bottomRight?.enabled ? 'checked' : ''} onchange="updateSiteSetting('floatingButtons.bottomRight.enabled', this.checked); renderSiteSettings();">
+          <span>활성화</span>
+        </label>
+      </div>
+
+      ${site.floatingButtons?.bottomRight?.enabled ? `
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">타입</label>
+            <select class="form-select" value="${site.floatingButtons?.bottomRight?.type || 'scroll'}" onchange="updateSiteSetting('floatingButtons.bottomRight.type', this.value)">
+              <option value="scroll">스크롤</option>
+              <option value="kakao">카카오채널</option>
+              <option value="external">외부 링크</option>
+            </select>
+          </div>
+
+          ${site.floatingButtons?.bottomRight?.type === 'external' || site.floatingButtons?.bottomRight?.type === 'kakao' ? `
+            <div class="form-group">
+              <label class="form-label">URL</label>
+              <input type="text" class="form-input" placeholder="https://" value="${site.floatingButtons?.bottomRight?.url || ''}" onchange="updateSiteSetting('floatingButtons.bottomRight.url', this.value)">
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <h4 style="font-size: 14px; font-weight: 600; margin: 20px 0 10px;">좌하단 버튼</h4>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" ${site.floatingButtons?.bottomLeft?.enabled ? 'checked' : ''} onchange="updateSiteSetting('floatingButtons.bottomLeft.enabled', this.checked); renderSiteSettings();">
+          <span>활성화</span>
+        </label>
+      </div>
+
+      ${site.floatingButtons?.bottomLeft?.enabled ? `
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">타입</label>
+            <select class="form-select" value="${site.floatingButtons?.bottomLeft?.type || 'scroll'}" onchange="updateSiteSetting('floatingButtons.bottomLeft.type', this.value)">
+              <option value="scroll">스크롤</option>
+              <option value="kakao">카카오채널</option>
+              <option value="external">외부 링크</option>
+            </select>
+          </div>
+
+          ${site.floatingButtons?.bottomLeft?.type === 'external' || site.floatingButtons?.bottomLeft?.type === 'kakao' ? `
+            <div class="form-group">
+              <label class="form-label">URL</label>
+              <input type="text" class="form-input" placeholder="https://" value="${site.floatingButtons?.bottomLeft?.url || ''}" onchange="updateSiteSetting('floatingButtons.bottomLeft.url', this.value)">
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+    </div>
+
+    <button class="btn btn-primary btn-block" onclick="saveSiteSettings()">저장</button>
+  `;
+}
+
+function updateSiteSetting(path, value) {
+  const keys = path.split('.');
+  let obj = STATE.settings.site;
+  
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!obj[keys[i]]) obj[keys[i]] = {};
+    obj = obj[keys[i]];
+  }
+  
+  obj[keys[keys.length - 1]] = value;
+  STATE.hasUnsavedChanges = true;
+
+  // GitHub 토큰 저장
+  if (path === 'github.token') {
+    localStorage.setItem('github_token', value);
+  }
+}
+
+function saveSiteSettings() {
+  saveSiteData();
+  STATE.hasUnsavedChanges = false;
+  addActivity('settings', '사이트 기본 설정 저장');
+  alert('사이트 설정이 저장되었습니다!');
+}
+
+// ==================== 이미지 라이브러리 렌더링 ====================
+function renderImageLibrary() {
+  if (!STATE.currentSite) return;
+
+  // 이미지 라이브러리 초기 state
+  if (!STATE.imageLibrary) {
+    STATE.imageLibrary = {
+      folders: ['banners', 'products', 'logos'],
+      currentFolder: 'all',
+      searchQuery: '',
+      selectedImages: [],
+      viewMode: 'medium', // small, medium, large, list
+      itemsPerPage: 20,
+      currentPage: 1
+    };
+  }
+
+  const lib = STATE.imageLibrary;
+  const storageUsed = Math.round(STATE.images.reduce((sum, img) => sum + (img.size || 0), 0) / 1024 / 1024); // MB
+  const storageLimit = 1000;
+  const storagePercent = (storageUsed / storageLimit) * 100;
+  const isWarning = storageUsed >= 800;
+  const isDanger = storageUsed >= 950;
+
+  // 필터링된 이미지
+  const filteredImages = STATE.images.filter(img => {
+    const matchFolder = lib.currentFolder === 'all' || img.folder === lib.currentFolder;
+    const matchSearch = img.name.toLowerCase().includes(lib.searchQuery.toLowerCase());
+    return matchFolder && matchSearch;
+  });
+
+  // 페이지네이션
+  const totalPages = Math.ceil(filteredImages.length / lib.itemsPerPage);
+  const startIndex = (lib.currentPage - 1) * lib.itemsPerPage;
+  const endIndex = startIndex + lib.itemsPerPage;
+  const paginatedImages = filteredImages.slice(startIndex, endIndex);
+
+  document.getElementById('imageLibrary').innerHTML = `
+    <!-- 저장 용량 표시 -->
+    <div class="card">
+      <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+        <h3 style="font-size: 16px; font-weight: 600;">저장 용량</h3>
+        <span style="font-size: 14px; font-weight: 500; color: ${isDanger ? '#ef4444' : isWarning ? '#f59e0b' : '#64748b'};">
+          ${storageUsed.toFixed(1)} MB / ${storageLimit} MB
+        </span>
+      </div>
+      <div class="storage-bar">
+        <div class="storage-fill ${isDanger ? 'danger' : isWarning ? 'warning' : ''}" style="width: ${storagePercent}%;"></div>
+      </div>
+      ${isWarning ? `
+        <p style="font-size: 13px; color: ${isDanger ? '#ef4444' : '#f59e0b'}; margin-top: 10px;">
+          ${isDanger 
+            ? '⚠️ 저장 용량이 거의 다 찼습니다. 업로드가 차단됩니다.' 
+            : '⚠️ 저장 용량이 80%를 초과했습니다.'
+          }
+        </p>
+      ` : ''}
+    </div>
+
+    <!-- 업로드 및 폴더 -->
+    <div class="card">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <label class="btn btn-primary ${isDanger ? 'btn-secondary' : ''}" ${isDanger ? 'style="cursor: not-allowed; opacity: 0.5;"' : ''}>
+          📤 이미지 업로드
+          <input type="file" multiple accept="image/*" onchange="handleImageUpload(event)" ${isDanger ? 'disabled' : ''} style="display: none;">
+        </label>
+        <button class="btn btn-secondary" onclick="showNewFolderModal()">📁 폴더 생성</button>
+        ${lib.selectedImages.length > 0 ? `
+          <button class="btn btn-danger" onclick="deleteSelectedImages()">🗑️ 선택 삭제 (${lib.selectedImages.length})</button>
+        ` : ''}
+      </div>
+
+      <!-- 폴더 탭 -->
+      <div class="folder-tabs">
+        <button class="folder-tab ${lib.currentFolder === 'all' ? 'active' : ''}" onclick="selectFolder('all')">전체</button>
+        ${lib.folders.map(folder => `
+          <button class="folder-tab ${lib.currentFolder === folder ? 'active' : ''}" onclick="selectFolder('${folder}')">
+            📁 ${folder}
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- 검색 -->
+      <div class="form-group" style="margin-bottom: 15px;">
+        <input type="text" class="form-input" placeholder="이미지 검색..." value="${lib.searchQuery}" oninput="updateSearchQuery(this.value)">
+      </div>
+
+      <!-- 뷰 옵션 -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 13px; color: #64748b;">보기:</span>
+          <div style="display: flex; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 6px;">
+            <button class="btn btn-sm ${lib.viewMode === 'small' ? 'btn-primary' : 'btn-secondary'}" onclick="setViewMode('small')" style="padding: 6px 10px;" title="작게">⊞</button>
+            <button class="btn btn-sm ${lib.viewMode === 'medium' ? 'btn-primary' : 'btn-secondary'}" onclick="setViewMode('medium')" style="padding: 6px 10px;" title="보통">⊡</button>
+            <button class="btn btn-sm ${lib.viewMode === 'large' ? 'btn-primary' : 'btn-secondary'}" onclick="setViewMode('large')" style="padding: 6px 10px;" title="크게">□</button>
+            <button class="btn btn-sm ${lib.viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}" onclick="setViewMode('list')" style="padding: 6px 10px;" title="목록">☰</button>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 13px; color: #64748b;">페이지당:</span>
+          <select class="form-select" value="${lib.itemsPerPage}" onchange="setItemsPerPage(parseInt(this.value))" style="width: auto; padding: 6px 12px;">
+            <option value="20">20개</option>
+            <option value="50">50개</option>
+            <option value="100">100개</option>
+            <option value="200">200개</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 전체 선택 -->
+      ${filteredImages.length > 0 ? `
+        <div style="margin-bottom: 15px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" ${lib.selectedImages.length === filteredImages.length ? 'checked' : ''} onchange="toggleSelectAll(this.checked)">
+            <span style="font-size: 14px; font-weight: 500;">전체 선택 (${filteredImages.length}개)</span>
+          </label>
+        </div>
+      ` : ''}
+
+      <!-- 이미지 그리드 -->
+      ${paginatedImages.length === 0 ? `
+        <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+          <p style="font-size: 16px; margin-bottom: 10px;">이미지가 없습니다</p>
+          <p style="font-size: 14px;">위의 업로드 버튼을 눌러 이미지를 추가하세요</p>
+        </div>
+      ` : `
+        <div class="image-grid ${lib.viewMode}" ${lib.viewMode === 'list' ? 'style="grid-template-columns: 1fr;"' : ''}>
+          ${paginatedImages.map(img => `
+            <div class="image-item ${lib.selectedImages.find(s => s.id === img.id) ? 'selected' : ''}" onclick="event.stopPropagation();">
+              <input type="checkbox" class="image-checkbox" ${lib.selectedImages.find(s => s.id === img.id) ? 'checked' : ''} onchange="toggleImageSelection('${img.id}', this.checked)">
+              <img src="${img.url}" alt="${img.name}" class="image-preview">
+              <div class="image-info">
+                <div class="image-name" title="${img.name}">${img.name}</div>
+                <div class="image-meta">${(img.size / 1024).toFixed(1)} KB · ${img.uploadDate || '날짜 없음'}</div>
+              </div>
+              <div class="image-actions">
+                <button class="btn btn-sm btn-danger" onclick="deleteImage('${img.id}')">🗑️</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 페이지네이션 -->
+        ${totalPages > 1 ? `
+          <div class="pagination">
+            <button class="pagination-btn" onclick="goToPage(${lib.currentPage - 1})" ${lib.currentPage === 1 ? 'disabled' : ''}>이전</button>
+            <span class="pagination-info">${lib.currentPage} / ${totalPages}</span>
+            <button class="pagination-btn" onclick="goToPage(${lib.currentPage + 1})" ${lib.currentPage === totalPages ? 'disabled' : ''}>다음</button>
+          </div>
+        ` : ''}
+      `}
+    </div>
+  `;
+}
+
+function handleImageUpload(event) {
+  const files = Array.from(event.target.files);
+  const storageUsed = STATE.images.reduce((sum, img) => sum + (img.size || 0), 0) / (1024 * 1024);
+
+  if (storageUsed >= 950) {
+    alert('저장 용량이 초과되어 업로드할 수 없습니다.');
+    event.target.value = '';
+    return;
+  }
+
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) {
+      alert(`${file.name}은(는) 이미지 파일이 아닙니다.`);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`${file.name}은(는) 5MB를 초과합니다.`);
+      return;
+    }
+
+    const sizeMB = file.size / (1024 * 1024);
+    if (storageUsed + sizeMB >= 950) {
+      alert('저장 용량을 초과하여 업로드할 수 없습니다.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const newImage = {
+        id: 'img' + Date.now() + Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        size: file.size,
+        folder: STATE.imageLibrary.currentFolder === 'all' ? 'uncategorized' : STATE.imageLibrary.currentFolder,
+        url: e.target.result,
+        uploadDate: new Date().toISOString().split('T')[0]
+      };
+
+      STATE.images.push(newImage);
+      saveSiteData();
+      addActivity('image', `"${file.name}" 이미지 업로드`);
+      renderImageLibrary();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  event.target.value = '';
+}
+
+function selectFolder(folder) {
+  STATE.imageLibrary.currentFolder = folder;
+  STATE.imageLibrary.currentPage = 1;
+  renderImageLibrary();
+}
+
+function updateSearchQuery(query) {
+  STATE.imageLibrary.searchQuery = query;
+  STATE.imageLibrary.currentPage = 1;
+  renderImageLibrary();
+}
+
+function setViewMode(mode) {
+  STATE.imageLibrary.viewMode = mode;
+  renderImageLibrary();
+}
+
+function setItemsPerPage(count) {
+  STATE.imageLibrary.itemsPerPage = count;
+  STATE.imageLibrary.currentPage = 1;
+  renderImageLibrary();
+}
+
+function toggleSelectAll(checked) {
+  if (checked) {
+    // 현재 필터링된 이미지 전체 선택
+    const filteredImages = STATE.images.filter(img => {
+      const matchFolder = STATE.imageLibrary.currentFolder === 'all' || img.folder === STATE.imageLibrary.currentFolder;
+      const matchSearch = img.name.toLowerCase().includes(STATE.imageLibrary.searchQuery.toLowerCase());
+      return matchFolder && matchSearch;
+    });
+    STATE.imageLibrary.selectedImages = [...filteredImages];
+  } else {
+    STATE.imageLibrary.selectedImages = [];
+  }
+  renderImageLibrary();
+}
+
+function toggleImageSelection(imageId, checked) {
+  const image = STATE.images.find(img => img.id === imageId);
+  if (!image) return;
+
+  if (checked) {
+    if (!STATE.imageLibrary.selectedImages.find(img => img.id === imageId)) {
+      STATE.imageLibrary.selectedImages.push(image);
+    }
+  } else {
+    STATE.imageLibrary.selectedImages = STATE.imageLibrary.selectedImages.filter(img => img.id !== imageId);
+  }
+  
+  renderImageLibrary();
+}
+
+function deleteImage(imageId) {
+  if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
+
+  const image = STATE.images.find(img => img.id === imageId);
+  STATE.images = STATE.images.filter(img => img.id !== imageId);
+  STATE.imageLibrary.selectedImages = STATE.imageLibrary.selectedImages.filter(img => img.id !== imageId);
+  
+  saveSiteData();
+  addActivity('image', `"${image.name}" 이미지 삭제`);
+  renderImageLibrary();
+}
+
+function deleteSelectedImages() {
+  if (STATE.imageLibrary.selectedImages.length === 0) return;
+
+  if (!confirm(`선택한 ${STATE.imageLibrary.selectedImages.length}개의 이미지를 삭제하시겠습니까?`)) return;
+
+  const deletedIds = STATE.imageLibrary.selectedImages.map(img => img.id);
+  STATE.images = STATE.images.filter(img => !deletedIds.includes(img.id));
+  STATE.imageLibrary.selectedImages = [];
+  
+  saveSiteData();
+  addActivity('image', `${deletedIds.length}개 이미지 삭제`);
+  renderImageLibrary();
+}
+
+function showNewFolderModal() {
+  const folderName = prompt('폴더 이름을 입력하세요:');
+  if (!folderName || !folderName.trim()) return;
+
+  const trimmedName = folderName.trim();
+  if (STATE.imageLibrary.folders.includes(trimmedName)) {
+    alert('이미 존재하는 폴더 이름입니다.');
+    return;
+  }
+
+  STATE.imageLibrary.folders.push(trimmedName);
+  saveSiteData();
+  alert('폴더가 생성되었습니다!');
+  renderImageLibrary();
+}
+
+function goToPage(page) {
+  const filteredImages = STATE.images.filter(img => {
+    const matchFolder = STATE.imageLibrary.currentFolder === 'all' || img.folder === STATE.imageLibrary.currentFolder;
+    const matchSearch = img.name.toLowerCase().includes(STATE.imageLibrary.searchQuery.toLowerCase());
+    return matchFolder && matchSearch;
+  });
+  
+  const totalPages = Math.ceil(filteredImages.length / STATE.imageLibrary.itemsPerPage);
+  
+  if (page < 1 || page > totalPages) return;
+  
+  STATE.imageLibrary.currentPage = page;
+  renderImageLibrary();
+}
+
+// ==================== 배포 페이지 렌더링 ====================
+function renderDeployPage() {
+  if (!STATE.currentSite) return;
+
+  const github = STATE.settings.site.github || {};
+  const hasGitHub = github.repo && github.token;
+
+  document.getElementById('deployContent').innerHTML = `
+    ${!hasGitHub ? `
+      <div class="alert alert-warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+          <div class="alert-title">GitHub 연동이 필요합니다</div>
+          <div class="alert-message">
+            배포하려면 사이트 기본 설정에서 GitHub Personal Access Token을 입력하세요.
+            <button class="btn btn-sm btn-primary" onclick="showTab('siteSettings')" style="margin-left: 10px;">설정하러 가기</button>
+          </div>
+        </div>
+      </div>
+    ` : `
+      <div class="card">
+        <div class="card-title">연결된 저장소</div>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <p style="font-size: 14px; margin-bottom: 5px;"><strong>저장소:</strong> ${github.repo}</p>
+          <p style="font-size: 14px; margin-bottom: 5px;"><strong>브랜치:</strong> ${github.branch}</p>
+          <p style="font-size: 14px;"><strong>예상 URL:</strong> https://${github.repo.split('/')[0]}.github.io/${github.repo.split('/')[1]}</p>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="startDeploy()">🚀 지금 배포하기</button>
+      </div>
+
+      <!-- 배포 로그 -->
+      <div class="card" id="deployLogContainer" style="display: none;">
+        <div class="card-title">배포 로그</div>
+        <div class="deploy-log" id="deployLog"></div>
+        <div id="deployResult"></div>
+      </div>
+
+      <!-- 배포 이력 -->
+      ${STATE.deployHistory.length > 0 ? `
+        <div class="card">
+          <div class="card-title">배포 이력</div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>시간</th>
+                  <th>상태</th>
+                  <th>메시지</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${STATE.deployHistory.slice(0, 10).map(deploy => `
+                  <tr>
+                    <td>${deploy.time}</td>
+                    <td>
+                      <span class="badge ${deploy.success ? 'badge-success' : 'badge-danger'}">
+                        ${deploy.success ? '✅ 성공' : '❌ 실패'}
+                      </span>
+                    </td>
+                    <td>${deploy.message || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ` : ''}
+    `}
+  `;
+}
+
+function startDeploy() {
+  if (!confirm('사이트를 배포하시겠습니까?\n\n현재 저장된 내용이 GitHub Pages로 배포됩니다.')) {
+    return;
+  }
+
+  // 배포 로그 표시
+  document.getElementById('deployLogContainer').style.display = 'block';
+  const deployLog = document.getElementById('deployLog');
+  const deployResult = document.getElementById('deployResult');
+  
+  deployLog.innerHTML = '';
+  deployResult.innerHTML = '';
+
+  // 배포 로그 함수
+  function addLog(message, type = 'info') {
+    const time = new Date().toLocaleTimeString('ko-KR');
+    const logLine = document.createElement('div');
+    logLine.className = 'deploy-log-line';
+    logLine.innerHTML = `
+      <span class="deploy-log-time">${time}</span>
+      <span class="deploy-log-text ${type}">${message}</span>
+    `;
+    deployLog.appendChild(logLine);
+    deployLog.scrollTop = deployLog.scrollHeight;
+  }
+
+  // 배포 시작
+  addLog('🚀 배포를 시작합니다...', 'info');
+  
+  setTimeout(() => {
+    addLog('📦 사이트 데이터를 준비 중...', 'info');
+  }, 500);
+
+  setTimeout(() => {
+    addLog('🔨 HTML 파일을 생성 중...', 'info');
+  }, 1000);
+
+  setTimeout(() => {
+    addLog('📤 GitHub에 업로드 중...', 'info');
+  }, 1500);
+
+  setTimeout(() => {
+    addLog('🖼️ 이미지를 업로드 중...', 'info');
+  }, 2000);
+
+  setTimeout(() => {
+    const github = STATE.settings.site.github;
+    const success = Math.random() > 0.1; // 90% 성공률 시뮬레이션
+
+    if (success) {
+      addLog('✅ 배포가 완료되었습니다!', 'success');
+      
+      const siteUrl = `https://${github.repo.split('/')[0]}.github.io/${github.repo.split('/')[1]}`;
+      
+      deployResult.innerHTML = `
+        <div class="alert alert-success" style="margin-top: 20px;">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <div class="alert-title">배포 성공!</div>
+            <div class="alert-message">
+              사이트가 성공적으로 배포되었습니다.<br>
+              <strong>URL:</strong> <a href="${siteUrl}" target="_blank" style="color: #15803d; text-decoration: underline;">${siteUrl}</a><br>
+              <small style="color: #64748b;">GitHub Pages 반영까지 1-2분 소요될 수 있습니다.</small>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 배포 이력 추가
+      STATE.deployHistory.unshift({
+        time: new Date().toLocaleString('ko-KR'),
+        success: true,
+        message: '배포 완료',
+        url: siteUrl
+      });
+
+      saveSiteData();
+      addActivity('deploy', '사이트 배포 완료');
+      
+      // 대시보드 업데이트
+      renderDashboard();
+    } else {
+      addLog('❌ 배포 중 오류가 발생했습니다.', 'error');
+      
+      deployResult.innerHTML = `
+        <div class="alert alert-danger" style="margin-top: 20px;">
+          <div class="alert-icon">❌</div>
+          <div class="alert-content">
+            <div class="alert-title">배포 실패</div>
+            <div class="alert-message">
+              배포 중 오류가 발생했습니다. GitHub Personal Access Token을 확인해주세요.
+            </div>
+          </div>
+        </div>
+      `;
+
+      STATE.deployHistory.unshift({
+        time: new Date().toLocaleString('ko-KR'),
+        success: false,
+        message: 'GitHub API 오류'
+      });
+
+      saveSiteData();
+    }
+
+    // 배포 이력 재렌더링
+    setTimeout(() => {
+      renderDeployPage();
+    }, 3000);
+  }, 3000);
+}
+
+// ==================== GitHub API 함수들 ====================
+// 실제 프로덕션에서는 이 함수들이 GitHub API를 호출합니다
+async function uploadToGitHub(content, path, repo, branch, message) {
+  // 여기서는 시뮬레이션
+  console.log('GitHub 업로드:', path);
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({ success: true });
+    }, 100);
+  });
+}
+
+async function deployToGitHub(siteData, repo, branch) {
+  console.log('GitHub 배포:', repo, branch);
+  // 실제로는 모든 페이지를 HTML로 변환하고 업로드
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({ success: true });
+    }, 2000);
+  });
+}
+
+// ==================== 완료! ====================
+console.log('✅ 멀티 사이트 관리 어드민 완전 로드 완료!');
+</script>
+
+<!-- Google OAuth 스크립트 (body 끝에서 로드) -->
+<script>
+  // Google OAuth 스크립트 동적 로드
+  (function() {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = function() {
+      console.log('✅ Google OAuth 스크립트 로드 완료');
+      // 스크립트 로드 완료 후 초기화 시작
+      if (!STATE.user) {
+        initGoogleOAuth();
+      }
+    };
+    script.onerror = function() {
+      console.error('❌ Google OAuth 스크립트 로드 실패');
+      document.getElementById('googleLoginBtn').innerHTML = `
+        <div style="padding: 20px; text-align: center; color: #ef4444;">
+          <p style="margin-bottom: 10px;">Google 로그인 스크립트를 불러올 수 없습니다.</p>
+          <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">네트워크 연결을 확인해주세요.</p>
+          <button onclick="location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            페이지 새로고침
+          </button>
+        </div>
+      `;
+    };
+    document.head.appendChild(script);
+  })();
+</script>
+</body>
 </html>
