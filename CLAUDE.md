@@ -8,7 +8,7 @@
 ### 배포 정보
 - **저장소**: `beybusiness-bit/beyhome-admin`
 - **배포 URL**: https://beybusiness-bit.github.io/beyhome-admin
-- **배포 방식**: GitHub Pages (gh-pages 브랜치)
+- **배포 방식**: GitHub Pages (main 브랜치, `/` root)
 - **로컬 작업 폴더**: `~/Downloads/beyhome-admin` (권장)
 
 ### AUTH 상수
@@ -187,7 +187,8 @@ cat part1.html new_function.js part2.html > index.html
 
 ### 배포 방식
 - **GitHub Pages** 사용
-- **gh-pages 브랜치**에 push
+- **main 브랜치** 루트(`/`)를 그대로 서비스
+- GitHub 저장소 Settings → Pages → Source에서 `main` / `/ (root)` 로 설정
 
 ### 배포 절차
 
@@ -205,19 +206,9 @@ git commit -m "feat: [기능 설명]"
 git push origin main
 ```
 
-#### 3. gh-pages 브랜치 배포
-```bash
-# index.html을 gh-pages 브랜치로 복사
-git checkout gh-pages
-git checkout main -- index.html
-git add index.html
-git commit -m "deploy: [배포 내용]"
-git push origin gh-pages
-```
-
-#### 4. 배포 확인
+#### 3. 배포 확인
 - URL: https://beybusiness-bit.github.io/beyhome-admin
-- 1-2분 후 반영 확인
+- main에 push하면 자동으로 배포됨 (1-2분 후 반영)
 
 ### 배포 체크리스트
 - [ ] 로컬 테스트 완료
