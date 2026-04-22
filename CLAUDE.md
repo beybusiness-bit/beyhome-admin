@@ -11,7 +11,7 @@
 
 **① lmp작업실 홈페이지** (첫 번째 사이트)
 - 저장소: `beybusiness-bit/lmp-website` (Private)
-- 로컬 작업 폴더: `~/Downloads/lmp-website`
+- 로컬 작업 폴더: `~/projects/lmp-website`
 - 배포 URL: `lmp-website.vercel.app`
 - 커스텀 도메인: **lazymaxpotential.kr**
 - 호스팅: **Vercel**
@@ -22,7 +22,7 @@
 
 **② 멀티 사이트 관리 어드민** (이 저장소)
 - 저장소: `beybusiness-bit/beyhome-admin`
-- 로컬 작업 폴더: `~/Downloads/beyhome-admin` (권장 → `~/projects/` 이동 권장, 샌드박스 이슈)
+- 로컬 작업 폴더: `~/projects/beyhome-admin`
 - 배포 URL: **https://beybusiness-bit.github.io/beyhome-admin**
 - 호스팅: **GitHub Pages (main 브랜치 루트)**
 - 기술 스택: **단일 HTML 파일** (Vanilla JS, ~5000줄)
@@ -81,85 +81,77 @@
 - 사용자 Terminal.app도 **권한 부여 전에 실행된 프로세스는 권한 미반영** — 터미널 완전 종료(Cmd+Q) 후 재실행해야 반영됨.
 - **이 세션 막바지에 터미널 재시작이 필요해져 세션 종료** (아래 "미결 과제" 참조)
 
+### 2026-04-22: 작업 환경 정리 완료 + 이전 세션 blocker 모두 해제
+
+Claude Code CLI 이행 마무리 단계. 이전 세션의 TCC 이슈와 CLAUDE.md 푸시 blocker를 근본적으로 해결하고 repo 위생 정리.
+
+- **저장소를 `~/Downloads/`에서 `~/projects/`로 이동** — `beyhome-admin`과 `lmp-website` 둘 다. `mv`로 `.git/` 보존하며 원자적 이동. 이제 Claude Code가 쓰기 가능한 경로에서 작업 → TCC 이슈 근본 해결.
+- **이전 세션에서 막혔던 CLAUDE.md 807줄 복원본 push 완료** (`c77e464`) — 이 문서가 비로소 repo에 반영됨.
+- **`.claude/` 로컬 설정 gitignore 추가** (`2250057`) — 로컬 전용 Claude Code 설정이 repo에 흘러가지 않도록.
+- **Vite 시절 `.env` 파일 3종 삭제** (`fb7d7a5`) — `.env.example`, `.env.save`, `.envt`. 단일 HTML은 `index.html`에 Client ID 하드코딩하므로 무의미한 잔재였음.
+- **`GOOGLE_CLIENT_ID` 단일화 확인**: `index.html:2108`의 값이 `27055656717-ed149rm5e49uhd7gaoicadd62fbe6hoh.apps.googleusercontent.com`으로 확정. 구버전 `...pgddfisd...`는 삭제된 `.env` 파일에만 있었음.
+- **GitHub Pages 설정 확인**: 사용자가 `main` / `/ (root)` 확정 및 배포 URL 육안 확인.
+- **다른 컴퓨터로 이행 준비**: 이 시점에 세션 종료 후 다른 컴퓨터에서 이어 작업 예정. 다음 컴퓨터에서는 `~/projects/` 아래에 두 repo를 clone하면 동일 상태에서 재개 가능 (섹션 12 STEP 0 참조).
+
 ---
 
-## ⏸️ 2-1. 현재 미결 상태 (2026-04-21 세션 종료 시점)
+## ⏸️ 2-1. 현재 미결 상태 (2026-04-22 세션 종료 시점)
 
 > 다음 세션에서 가장 먼저 확인할 것.
 
-### 🔴 이 세션에서 시도했지만 완결되지 않은 것
+### 🔴 사용자 피드백 대기 중 — Phase 5 착수 전 먼저 처리
 
-**① 복원된 CLAUDE.md의 repo 푸시 — 미완료**
-- 현재 파일: `/Users/bey/projects/beyhome-admin/CLAUDE.md` (Claude Code 작업 폴더, 이 문서 — 최신)
-- Repo 쪽: `~/Downloads/beyhome-admin/CLAUDE.md` — **이전 축약본이 여전히 커밋되어 있음** (리모트 HEAD: `472c839`)
-- 차단 원인: macOS TCC가 Claude Code의 `~/Downloads` 쓰기를 막아서 sync 불가
-- 다음 세션에서 해야 할 것:
-  1. 사용자가 **새로 시작한 Terminal.app** 에서 아래 실행:
-     ```
-     cp -f /Users/bey/projects/beyhome-admin/CLAUDE.md ~/Downloads/beyhome-admin/CLAUDE.md
-     cd ~/Downloads/beyhome-admin
-     git add CLAUDE.md && git commit -m "docs: restore full project context" && git push origin main
-     ```
-  2. 또는 repo를 Downloads 밖(`~/projects/beyhome-admin`)으로 이동한 뒤 동일 절차.
-
-**② 사용자님의 이번 세션 패치 피드백 — 대기 중**
-- 사용자가 명시적으로 말씀하심: "이번에 너가 해준 패치의 피드백도 다음 세션에서 할 거야"
-- 피드백 대상:
-  - CLAUDE.md를 재정리한 내용 (섹션 구성, 설명의 적절성, 빠진 게 없는지)
-  - 배포 방식 전환(`gh-pages` → `main`) 결정과 설명
+**① 이전 세션들에 대한 누적 피드백**
+- 사용자가 명시: 피드백이 방대할 예정이라 따로 시간 내서 주기로 함. **Phase 5 시작 전에 이 피드백을 먼저 받고 반영**할 것.
+- 피드백 대상 (2026-04-20~21):
+  - CLAUDE.md 재정리 내용 (섹션 구성, 설명의 적절성, 빠진 부분)
+  - 배포 방식 전환(`gh-pages` → `main`) 결정
   - 저장소 정리(React 잔재 삭제) 결정
   - macOS 권한 이슈 대응 제안
-- 다음 세션에서는 **피드백 요청이 먼저 올 가능성 높음** — 받은 피드백을 CLAUDE.md에 반영할 것.
+- 피드백 대상 (2026-04-22):
+  - 저장소 `~/Downloads` → `~/projects` 이동
+  - `.claude/` gitignore 처리
+  - Vite 시절 `.env` 파일 3종 삭제
 
-### 🟡 사용자 액션이 필요한 검증/확정 항목 (이 세션에서도 요청했지만 아직 확인 안 됨)
+### 🟡 사용자 액션이 필요한 검증 항목
 
-**③ GitHub Pages Source 설정 확정**
-- Settings → Pages → Branch가 `main` / `/ (root)` 로 되어있는지 사용자가 확인 필요.
-- 현재 실제 배포 URL(https://beybusiness-bit.github.io/beyhome-admin)이 main 브랜치 내용을 반영하는지 육안 확인.
-
-**④ Google OAuth Client ID 단일화** ⚠️
-- 두 값이 병존:
-  - `27055656717-pgddfisd182i8jqlg574v7vrbkff2b2b.apps.googleusercontent.com` (`.env.save`, `.envt` 및 이전 claude.ai Projects 지침)
-  - `27055656717-ed149rm5e49uhd7gaoicadd62fbe6hoh.apps.googleusercontent.com` (이전 축약본 CLAUDE.md)
-- `index.html` 내 `GOOGLE_CLIENT_ID` 상수가 무엇인지 확인 필요 — **Claude Code가 권한 문제로 `index.html` 내용을 읽지 못해 확인 불가였음**.
-- 다음 세션에서 repo를 이동하거나 권한 해결되면 즉시 grep해서 이 문서에 단일 값으로 확정.
-
-**⑤ Phase 4 실환경 검증 3종** (CLAUDE.md 원본부터 남아있던 숙제)
-- lmp작업실 홈페이지 실제 배포 테스트 (어드민에서 `beybusiness-bit/lmp-website` repo로 배포까지 해보기, Personal Access Token 발급 필요)
-- 커스텀 도메인(lazymaxpotential.kr) 연결 테스트
+**② Phase 4 실환경 검증 3종** (CLAUDE.md 원본부터 남아있던 숙제)
+- lmp작업실 홈페이지 실제 배포 테스트 (어드민에서 `beybusiness-bit/lmp-website` repo로 배포, Personal Access Token 발급 필요)
+- 커스텀 도메인(`lazymaxpotential.kr`) 연결 테스트
 - 모든 브라우저(Chrome, Edge, Safari, Firefox)에서 로그인 테스트
 
-### 🟢 Phase 5 시작 전 준비 (다음 세션 본격 작업 대상)
+### 🟢 Phase 5 시작 전 준비 (피드백 반영 후 본격 작업 대상)
 
-**⑥ Google Sheets API 환경 세팅**
+**③ Google Sheets API 환경 세팅**
 - Google Cloud Console에서 Sheets API 활성화
 - OAuth 동의 화면에 Sheets API 범위 추가 (기존 OAuth 클라이언트 재사용)
 - Spreadsheet `1QHzz73LzPSGWCwl6SN7TPaxxdyqnkIxzlq9TQpGopag` 에 어드민용 시트 4개 구조 최종 확정 (섹션 9 참조)
 - GAS(Google Apps Script) 웹훅 스크립트 작성 (쓰기 경로)
 
-**⑦ 어드민 코드에 Sheets 연동 붙이기**
+**④ 어드민 코드에 Sheets 연동 붙이기**
 - 현재: 모든 데이터가 `localStorage`에만 있음 (섹션 9 참조)
 - 목표: 앱 시작 시 Sheets에서 로드 → 수정 시 Sheets에 저장 (또는 저장 버튼으로 일괄 sync)
+- ⚠️ **컴퓨터 전환 시 localStorage 데이터는 소실됨** — Phase 5 완료 전까지 한 환경에서만 실데이터 작업 권장. 현재는 테스트 데이터만 있으면 문제 없음.
 
 ### 🔵 장기 로드맵 (코드 미반영, 계획만 존재)
 
-**⑧ 어드민에서 새 사이트 생성 기능** (CLAUDE.md 섹션 5에서 "추가 필요 기능"으로 명시)
+**⑤ 어드민에서 새 사이트 생성 기능** (섹션 5 "추가 필요 기능")
 - SiteList 페이지에 "새 사이트 만들기" 버튼
 - 사이트명, GitHub 저장소, 템플릿 선택 후 초기 구조 자동 생성, `config.js` 자동 설정
 - Phase 4에서 미구현 상태로 남은 항목
 
-**⑨ Phase 6 — 회원 시스템 (Firebase Auth)**
+**⑥ Phase 6 — 회원 시스템 (Firebase Auth)**
 - lmp홈페이지용, 닉네임 + 비밀번호
 - 재방문 시 자동완성, 개인정보 수집·이용 동의
 
-**⑩ Phase 6.5 — 게시판/갤러리/댓글**
+**⑦ Phase 6.5 — 게시판/갤러리/댓글**
 - 게시판(CRUD), 갤러리(그리드/확대), 댓글(로그인 회원만)
 - 신규 시트: `contents`, `comments`, `pages_config`
 
-**⑪ 콘텐츠 채우기 + 뼈대 개선 1차**
+**⑧ 콘텐츠 채우기 + 뼈대 개선 1차**
 - 뼈대 개선은 **모아서 한 번에** 하기로 규칙 정해져 있음 (섹션 7 개발 규칙)
 
-**⑫ Phase 7 — 이후 관리 방법 안내**
+**⑨ Phase 7 — 이후 관리 방법 안내**
 
 ---
 
@@ -256,7 +248,7 @@ lmp-website/
 - Vercel 프로젝트: `lmp-website`
 - 배포 URL: `lmp-website.vercel.app`
 - 커스텀 도메인: **lazymaxpotential.kr**
-- 로컬 작업 폴더: `~/Downloads/lmp-website`
+- 로컬 작업 폴더: `~/projects/lmp-website`
 
 ### 준비중 모드 (현재 활성화 중)
 
@@ -748,31 +740,38 @@ localStorage['site_site1_data'] = {
 ### STEP 0 — 세션 시작 시 가장 먼저 할 일
 
 1. **이 문서 전체를 먼저 읽어** 프로젝트 맥락 파악 (특히 섹션 1, 2, 2-1)
-2. 사용자로부터 **이전 세션 패치에 대한 피드백**이 먼저 올 가능성 높음 — 받고 반영
-3. **repo 위치 확인** — `~/Downloads/beyhome-admin/` 그대로인지, `~/projects/beyhome-admin/`으로 이동됐는지 확인
+2. **repo 위치 확인**:
+   - 어드민: `~/projects/beyhome-admin/`
+   - lmp홈페이지: `~/projects/lmp-website/`
+   - 다른 컴퓨터에서 새로 시작하는 경우:
+     ```bash
+     mkdir -p ~/projects
+     cd ~/projects
+     git clone https://github.com/beybusiness-bit/beyhome-admin.git
+     git clone https://github.com/beybusiness-bit/lmp-website.git
+     cd ~/projects/beyhome-admin && claude
+     ```
+   - ⚠️ **절대 `~/Downloads/` 사용 금지** — macOS TCC로 Claude Code가 해당 경로에 쓰기 실패.
 
-### STEP 1 — CLAUDE.md 푸시 완료 여부 확인 (이전 세션 잔여)
+### STEP 1 — 사용자 피드백 받기 (섹션 2-1 ① 참조)
 
-다음 세션 시작 전에 사용자가 터미널에서 다음을 수행했어야 함:
-```bash
-cp -f /Users/bey/projects/beyhome-admin/CLAUDE.md ~/Downloads/beyhome-admin/CLAUDE.md
-cd ~/Downloads/beyhome-admin
-git add CLAUDE.md && git commit -m "docs: restore full project context" && git push origin main
-```
+Phase 5 시작 전에 사용자가 이전 세션들(2026-04-20~21, 2026-04-22)에 대한 **누적 피드백**을 줄 예정. 받은 내용을:
+- 코드/문서에 반영
+- CLAUDE.md 섹션 7(개발 규칙)·섹션 10(UX 주의사항) 등 해당 위치에 누적 기록
+- 피드백 반영 완료 후 섹션 2-1 ①을 비움
 
-확인 방법: `git ls-remote https://github.com/beybusiness-bit/beyhome-admin.git HEAD`
-- 출력이 `472c8394...` 이면 **아직 안 됨** (이전 세션 마지막 커밋) → 사용자에게 다시 안내
-- 새 해시면 완료됨
+### STEP 2 — Phase 4 실환경 검증 3종 (섹션 2-1 ② 참조)
 
-### STEP 2 — 사용자 액션 확인 사항
+사용자가 본인 환경에서 처리해야 할 항목:
+- [ ] lmp홈페이지 실배포 테스트 (어드민에서 `beybusiness-bit/lmp-website`로 배포, PAT 필요)
+- [ ] 커스텀 도메인(`lazymaxpotential.kr`) 연결
+- [ ] 전 브라우저(Chrome·Edge·Safari·Firefox) 로그인 테스트
 
-- [ ] **GitHub Pages Source 설정** — Settings → Pages → Branch가 `main` / `/ (root)` 인지 확정
-- [ ] **실환경 검증 3종** (섹션 2-1 ⑤ 참조) — 진행 상황 물어보기
-- [ ] **Client ID 단일화** (섹션 2-1 ④ 참조) — `index.html`의 `GOOGLE_CLIENT_ID` 값 확인해서 문서에 단일 값으로 확정
+피드백 반영과 병행 가능. 진행 상황 물어봐서 CLAUDE.md에 기록.
 
-### STEP 3 — Phase 5 시작 (본격 작업)
+### STEP 3 — Phase 5 착수 (본격 작업)
 
-위 체크리스트 끝나면 Phase 5 진입:
+위 STEP 1·2 정리되면 Phase 5 진입:
 
 1. **Google Cloud Console**:
    - Sheets API 활성화
@@ -798,10 +797,11 @@ git add CLAUDE.md && git commit -m "docs: restore full project context" && git p
 - **lmp는 항상 소문자**
 - 기능 축약·삭제 금지, **모든 기능/UI/데이터 흐름 보존**
 - 뼈대 개선은 **모아서 한 번에**
+- **`~/Downloads/` 경로 금지** — 프로젝트는 항상 `~/projects/`에서 작업
 
 ---
 
-**마지막 업데이트**: 2026-04-21 (세션 종료 시점, 터미널 재시작 직전)
+**마지막 업데이트**: 2026-04-22 (작업 환경 정리 완료, 다른 컴퓨터로 이행 준비 상태)
 **현재 Phase**: Phase 4 완료 ✅
 **다음 Phase**: Phase 5 — 홈페이지 ↔ 어드민 데이터 연동 🔲
-**미결 상태**: CLAUDE.md repo 푸시 + 사용자 피드백 반영 대기 중 (섹션 2-1 참조)
+**미결 상태**: 사용자 피드백 반영 대기 중 (섹션 2-1 ① 참조) → 반영 후 Phase 5 착수
